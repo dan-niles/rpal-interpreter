@@ -1,0 +1,5 @@
+let rec Fact N =
+    N ls 0 -> 'Error'
+    |(N eq 0) or (N eq 1) -> 1 | N * Fact (N-1)
+in
+    Print ( Fact(5) )

@@ -1,0 +1,6 @@
+let isPositiveOrNegetive(N) = 
+    N gr 0 -> 'Positive'
+    | N ls 0 -> 'Negative'
+    | 'Zero'
+in
+    Print( isPositiveOrNegetive(10) )
