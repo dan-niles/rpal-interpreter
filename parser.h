@@ -7,10 +7,12 @@
 #include <vector>
 #include <math.h>
 #include <stdio.h>
+#include "token.h"
+#include "tree.h"
 
 using namespace std;
 
-// stack<tree *> st;
+stack<tree *> st;
 
 string keys[] = {"let", "fn", "in", "where", "aug", "or", "not", "true", "false", "nil", "dummy", "within",
                  "and", "rec", "gr", "ge", "ls", "le", "eq", "ne"};
@@ -20,7 +22,7 @@ string ops[] = {"+", "-", "*", "/", "**", "@", "o", "&", "aug", "->", "gr", "ge"
 class parser
 {
 public:
-    // token nt;            // Non-terminal
+    token nt;            // Non-terminal
     char readnew[10000]; // Read new character
     int index;           // Index of character
     int sizeOfFile;      // Size of file
@@ -33,4 +35,27 @@ public:
         sizeOfFile = size;
         astFlag = af;
     }
+
+    void read(string val, string type)
+    {
+        if (val != nt.getVal() || type != nt.getType())
+        {
+            cout << "Expected : " << val << " - " << type << " but found : " << nt.getVal() << " - " << nt.getType() << endl;
+            exit(0);
+        }
+
+        if (type == "ID" || type == "INT" || type == "STR")
+        {
+            build_tree(val, type, 0);
+        }
+
+        nt = getToken(readnew);
+
+        while (nt.getType() == "DELETE")
+        {
+            nt = getToken(readnew);
+        }
+    }
+
+    void build_tree(string val, string type, int child) {}
 };
