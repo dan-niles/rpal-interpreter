@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <string.h>
+#include "parser.h"
 
 using namespace std;
 
