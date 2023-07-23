@@ -19,6 +19,8 @@ public:
 	void setType(string typ);
 	string getVal();
 	string getType();
+	tree *createNode(string value, string typ);
+	tree *createNode(tree *x);
 };
 
 void tree::setVal(string value)
@@ -39,6 +41,26 @@ string tree::getVal()
 string tree::getType()
 {
 	return type;
+}
+
+tree *createNode(string value, string typ)
+{
+	tree *temp = new tree();
+	temp->setVal(value);
+	temp->setType(typ);
+	temp->left = NULL;
+	temp->right = NULL;
+	return temp;
+}
+
+tree *createNode(tree *x)
+{
+	tree *temp = new tree();
+	temp->setVal(x->getVal());
+	temp->setType(x->getType());
+	temp->left = x->left;
+	temp->right = NULL;
+	return temp;
 }
 
 void tree::print_my_tree(int dots)
