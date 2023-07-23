@@ -17,7 +17,8 @@ stack<tree *> st;
 string keys[] = {"let", "fn", "in", "where", "aug", "or", "not", "true", "false", "nil", "dummy", "within",
                  "and", "rec", "gr", "ge", "ls", "le", "eq", "ne"};
 
-string ops[] = {"+", "-", "*", "/", "**", "@", "o", "&", "aug", "->", "gr", "ge", "ls", "le", "eq", "ne", "not", "or", "and"};
+char operators[] = {'+', '-', '*', '<', '>', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '#', '%',
+                    '^', '_', '[', ']', '{', '}', '"', '`', '?'};
 
 class parser
 {
@@ -34,6 +35,52 @@ public:
         index = i;
         sizeOfFile = size;
         astFlag = af;
+    }
+
+    // Checks if the given string is a keyword
+    bool isReservedKey(string str)
+    {
+        // int size = keys.size();
+        int i = 0;
+        for (i = 0; i < 20; i++)
+        {
+            if (str == keys[i])
+                return true;
+        }
+        return false;
+    }
+
+    // Checks if the given character is an operator
+    bool isOperator(char ch)
+    {
+        for (int i = 0; i < 25; i++)
+        {
+            if (ch == operators[i])
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Checks if the given character is an alphabet letter
+    bool isAlpha(char ch)
+    {
+        if ((ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    // Checks if the given character is a digit
+    bool isDigit(char ch)
+    {
+        if (ch >= 48 && ch <= 57)
+        {
+            return true;
+        }
+        return false;
     }
 
     void read(string val, string type)
