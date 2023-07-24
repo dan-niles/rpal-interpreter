@@ -352,20 +352,22 @@ public:
 
         proc_E(); // Start parsing from E
 
-        while (nt.getType() == "DELETE")
+        while (nt.getType() == "DELETE") // Ignore all DELETE tokens
         {
             nt = getToken(readnew);
         }
-        
-        if (index >= sizeOfFile - 1)
-        {
-            tree *t = st.top();
 
-            if (astFlag == 1)
+        if (index >= sizeOfFile - 1) // Check if end of file is reached
+        {
+            tree *t = st.top(); // Get the root of the tree
+
+            // Print the tree
+            if (astFlag == 1) 
             {
                 t->print_tree(0);
             }
 
+            // Make the ST
             makeST(t);
 
             vector<tree *> delta;
@@ -375,9 +377,7 @@ public:
             int size = 0;
             int inner = 0;
             while (setOfDeltaArray[size][0] != NULL)
-            {
                 size++;
-            }
 
             vector<vector<tree *> > setOfDelta;
             for (int i = 0; i < size; i++)
@@ -391,18 +391,19 @@ public:
                 setOfDelta.push_back(temp);
             }
 
-            csem(setOfDelta);
+            cse_machine(setOfDelta);
         }
     }
 
-    void csem(vector<vector<tree *> > &controlStructure)
+    // Control Stack Environment Machine
+    void cse_machine(vector<vector<tree *> > &controlStructure)
     {
         stack<tree *> control;
         stack<tree *> machine;
-        stack<environment *> stackOfEnvironment;
-        stack<environment *> getCurrEnvironment;
+        stack<environment *> stackOfEnvironment; // Stack of environments
+        stack<environment *> getCurrEnvironment; 
 
-        int currEnvIndex = 0;                     // initial invironment
+        int currEnvIndex = 0;                     // Initial environment
         environment *currEnv = new environment(); // env0;
 
         currEnvIndex++;
@@ -744,162 +745,124 @@ public:
                 }
                 else if (machineTop->getVal() == "Isinteger")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop();
                     tree *isNextInt = machine.top();
                     machine.pop();
-                    // cout << " 1.  next is " << isNextInt->getVal() << " and type " << isNextInt->getType() << endl;
                     if (isNextInt->getType() == "INT")
                     {
-                        // cout << " pushing true" << endl;
                         tree *resNode = createNode("true", "boolean");
                         machine.push(resNode);
                     }
                     else
                     {
-                        // cout << "pushing false" << endl;
                         tree *resNode = createNode("false", "boolean");
                         machine.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Istruthvalue")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop();
                     tree *isNextBool = machine.top();
-                    machine.pop(); // poppoedxfg
-                    // cout << " 2. next is " << isNextBool->getVal() << " and type " << isNextBool->getType() << endl;
+                    machine.pop(); 
                     if (isNextBool->getVal() == "true" || isNextBool->getVal() == "false")
                     {
-                        // cout << " pushing true" << endl;
                         tree *resNode = createNode("true", "BOOL");
                         machine.push(resNode);
                     }
                     else
                     {
-                        // cout << "pushing false" << endl;
                         tree *resNode = createNode("false", "BOOL");
                         machine.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Isstring")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop();
                     tree *isNextString = machine.top();
-                    // cout << " 3. next is " << isNextString->getVal() << " and type " << isNextString->getType() << endl;
                     machine.pop();
                     if (isNextString->getType() == "STR")
                     {
-                        // cout << " pushing true" << endl;
                         tree *resNode = createNode("true", "BOOL");
                         machine.push(resNode);
                     }
                     else
                     {
-                        // cout << "pushing false" << endl;
                         tree *resNode = createNode("false", "BOOL");
                         machine.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Istuple")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop();
                     tree *isNextTau = machine.top();
                     machine.pop();
-                    // cout << " 4. next is " << isNextTau->getVal() << " and type " << isNextTau->getType() << endl;
                     if (isNextTau->getType() == "tau")
                     {
-                        // cout << " pushing true" << endl;
                         tree *resNode = createNode("true", "BOOL");
                         machine.push(resNode);
                     }
                     else
                     {
-                        // cout << "pushing false" << endl;
                         tree *resNode = createNode("false", "BOOL");
                         machine.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Isfunction")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop();
                     tree *isNextFn = machine.top();
-                    // cout << " 5. next is " << isNextFn->getVal() << " and type " << isNextFn->getType() << endl;
+
                     if (isNextFn->getVal() == "lambda")
                     {
-                        // cout << " pushing true" << endl;
                         tree *resNode = createNode("true", "BOOL");
                         machine.push(resNode);
                     }
                     else
                     {
-                        // cout << "pushing false" << endl;
                         tree *resNode = createNode("false", "BOOL");
                         machine.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Isdummy")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop();
                     tree *isNextDmy = machine.top();
-                    // cout << " 6. next is " << isNextDmy->getVal() << " and type " << isNextDmy->getType() << endl;
                     if (isNextDmy->getVal() == "dummy")
                     {
-                        // cout << " pushing true" << endl;
                         tree *resNode = createNode("true", "BOOL");
                         machine.push(resNode);
                     }
                     else
                     {
-                        // cout << "pushing false" << endl;
                         tree *resNode = createNode("false", "BOOL");
                         machine.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Stern")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop();
                     tree *isNextString = machine.top();
 
-                    // cout << " 7. next is " << isNextString->getVal() << " and type " << isNextString->getType() << endl;
-
                     if (isNextString->getVal() == "")
                     {
-                        // isNextString->setVal("''");
                         cout << " empty string" << endl;
                         return;
                     }
 
                     if (isNextString->getType() == "STR")
                     {
-                        // int ind = isNextString->getVal().length()-3;
                         string strRes = "'" + isNextString->getVal().substr(2, isNextString->getVal().length() - 3) + "'";
-                        // cout << " after Stern " << strRes << endl;
                         machine.pop();
                         machine.push(createNode(strRes, "STR"));
-                    }
-                    else
-                    {
-                        // cout << " i don't know what to do !!!!! with " <<  isNextString->getType() << " val " << isNextString->getVal() << endl;
                     }
                 }
                 else if (machineTop->getVal() == "Stem")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
-                    // cout << machine.top()->getVal() << endl;
                     machine.pop();
                     tree *isNextString = machine.top();
 
-                    // cout << " 8. next is " << isNextString->getVal() << " and type " << isNextString->getType() << endl;
-
                     if (isNextString->getVal() == "")
                     {
-                        // isNextString->setVal("''");
                         cout << " empty string" << endl;
                         return;
                     }
@@ -907,32 +870,26 @@ public:
                     if (isNextString->getType() == "STR")
                     {
                         string strRes = "'" + isNextString->getVal().substr(1, 1) + "'";
-                        // cout << " after Stem " << strRes << endl;
                         machine.pop();
                         machine.push(createNode(strRes, "STR"));
-                    }
-                    else
-                    {
-                        // cout << " i don't know what to do !!!!! with " <<  isNextString->getType() << " val " << isNextString->getVal() << endl;
                     }
                 }
                 else if (machineTop->getVal() == "Order")
                 {
-                    // cout << " in gamma with Order" << endl;
+
                     machine.pop();
 
                     tree *getTau = machine.top();
                     tree *saveTau = getTau;
-                    // cout << " 10. next is tua " << getTau->getVal() << endl;
+
                     int numOfKids = 0;
-                    // cout <<getTau->left->right->getVal() << endl;
+
                     if (getTau->left != NULL)
                         getTau = getTau->left;
-                    // cout << " hello " << endl;
+
                     while (getTau != NULL)
                     {
                         numOfKids++;
-                        // cout <<  getTau->getVal() << ", ";
                         getTau = getTau->right;
                     }
                     getTau = machine.top();
@@ -940,69 +897,48 @@ public:
 
                     if ((getTau->getVal() == "nil"))
                     {
-                        // cout << " ONLY 1 KID which is nil" << endl;
                         numOfKids = 0;
                     }
 
-                    // cout << " oder is " << numOfKids;
                     stringstream ss11;
                     ss11 << numOfKids;
                     string str34 = ss11.str();
                     tree *orderNode = createNode(str34, "INT");
                     machine.push(orderNode);
-                    // cout << " helllo poddsfs" << endl;
                 }
                 else if (machineTop->getVal() == "Conc")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     tree *concNode = machine.top();
                     machine.pop();
                     tree *firstString = machine.top();
-                    // cout << " string one " << firstString->getVal().substr(1,firstString->getVal().length()-2)<< "with type " << firstString->getType() << endl;
                     machine.pop();
                     tree *secondString = machine.top();
-                    // cout << " second string " << secondString->getVal().substr(1,secondString->getVal().length()-2) << " with type " << secondString->getType() << endl;
                     if (secondString->getType() == "STR" || (secondString->getType() == "STR" && secondString->left != NULL && secondString->left->getVal() == "true"))
                     {
                         machine.pop();
                         string res = "'" + firstString->getVal().substr(1, firstString->getVal().length() - 2) + secondString->getVal().substr(1, secondString->getVal().length() - 2) + "'";
-                        // cout << " result " << res << endl;
                         tree *resNode = createNode(res, "STR");
                         machine.push(resNode);
-                        // pop gamma from control
                         control.pop();
                     }
                     else
                     {
-                        // cout << " **************** ONLY ONE STRING ************************" << endl;
                         concNode->left = firstString;
-                        // machine.push(firstString);
                         machine.push(concNode);
-                        // cout <<  machine.top()->getVal() << " ON TOP OF MACHINE" << endl;
-                        // cout << " applying Conc to only 1 string added a left kid flag and keeping conc " << endl;
                         firstString->left = createNode("true", "flag");
                     }
                 }
                 else if (machineTop->getVal() == "ItoS")
                 {
-                    // cout << " inside " << nextToken->getVal() << " with " << machineTop->getVal() << endl;
                     machine.pop(); // popping ItoS
                     tree *convertToString = machine.top();
-                    // cout << " convert " << convertToString->getVal() << " with " << convertToString->getType() << " to str " << endl;
                     machine.pop();
                     machine.push(createNode("'" + convertToString->getVal() + ",", "STR"));
                 }
             }
             else if (nextToken->getVal().substr(0, 3) == "env")
             {
-                // cout << " killing env " << nextToken->getVal() << endl;
                 stack<tree *> removeFromMachineToPutBack;
-                /*while(machine.top()->getType() != "ENV"){
-                    //tree *temp = machine.top();
-                    cout << " next token in mchine " << machine.top()->getVal() << " with type " << machine.top()->getType() << endl;
-                    removeFromMachineToPutBack.push(machine.top());
-                    machine.pop();
-                }*/
                 if (machine.top()->getVal() == "lambda")
                 {
                     removeFromMachineToPutBack.push(machine.top());
@@ -1016,47 +952,25 @@ public:
                 }
                 else
                 {
-                    // cout << " in else putting " << endl;
                     removeFromMachineToPutBack.push(machine.top());
                     machine.pop();
-                    // cout << removeFromMachineToPutBack.top()->getVal() << " to the temp stack " << endl;
                 }
-                // cout << " KILL IT" << endl;
-                // tree *topToken = machine.top();
-                // cout << " on machine top " << machine.top()->getVal() << endl;
-                // machine.pop();
                 tree *remEnv = machine.top();
-                // cout << " expecting env " << machine.top()->getVal() << endl;
-                // machine.pop();
+
                 if (nextToken->getVal() == remEnv->getVal())
                 {
-                    // control.pop();
-                    // cout << "killing off " << nextToken->getVal() << " and " << remEnv->getVal() << endl;
                     machine.pop();
-                    // cout << "killed off " << nextToken->getVal() << " and " << remEnv->getVal() << endl;
-
-                    // cout << " killing from stack of env " << stackOfEnvironment.top()->name << endl;
-                    // stackOfEnvironment.pop();
 
                     stack<tree *> printMachine = machine;
-                    /*cout << " left on machine $$$$$$$$$$" << endl;
-                    while( !printMachine.empty()){
-                        cout << printMachine.top()->getVal() << endl;;
-                        printMachine.pop();
-                    }*/
-                    // cout << " all this is left on machine $$$$$" << endl;
 
                     getCurrEnvironment.pop();
                     if (!getCurrEnvironment.empty())
                     {
                         currEnv = getCurrEnvironment.top();
-                        // cout << getCurrEnvironment.top()->name << endl;
-                        // cout << " new curr env is " << currEnv->name << endl;
                     }
                     else
                     {
                         currEnv = NULL;
-                        // cout << " current env is NULL ************" << endl;
                     }
                 }
                 else
@@ -1065,37 +979,27 @@ public:
                     return;
                 }
 
-                // cout << " to put back " << removeFromMachineToPutBack.size() << endl;
-
                 while (!removeFromMachineToPutBack.empty())
                 {
-                    // cout << " putting back " <<  removeFromMachineToPutBack.top()->getVal() <<endl;
                     machine.push(removeFromMachineToPutBack.top());
                     removeFromMachineToPutBack.pop();
                 }
-                // pushing the token back on machine
             }
             else if (nextToken->getType() == "ID" && nextToken->getVal() != "Print" && nextToken->getVal() != "Isinteger" && nextToken->getVal() != "Istruthvalue" && nextToken->getVal() != "Isstring" && nextToken->getVal() != "Istuple" && nextToken->getVal() != "Isfunction" && nextToken->getVal() != "Isdummy" && nextToken->getVal() != "Stem" && nextToken->getVal() != "Stern" && nextToken->getVal() != "Conc")
             {
-                // cout << " in else with next " << nextToken << endl;
                 environment *temp = currEnv;
                 int flag = 0;
                 while (temp != NULL)
                 {
 
-                    // cout <<" key is " << nextToken->getVal() << endl;
-
                     map<tree *, vector<tree *> >::iterator itr = temp->boundVar.begin();
                     while (itr != temp->boundVar.end())
                     {
-                        // cout << " inside evn name " << temp->name << " prev " << temp->prev->name << endl;
                         if (nextToken->getVal() == itr->first->getVal())
                         {
-                            // cout << " value of " << itr->first->getVal() << " is of size "<< itr->second.size() << " FOUND%%%%%%%%" << endl;
                             vector<tree *> temp = itr->second;
                             if (temp.size() == 1 && temp.at(0)->getVal() == "Conc" && temp.at(0)->left != NULL)
                             {
-                                // cout << " BOUND VAL IS CONC ************* %%%%%%%%% ************"<< endl;
                                 control.push(createNode("gamma", "KEYWORD"));
                                 machine.push(temp.at(0)->left);
                                 machine.push(temp.at(0));
@@ -1105,7 +1009,6 @@ public:
                                 int i = 0;
                                 while (i < temp.size())
                                 {
-                                    // cout << " bound val is " << temp.at(i)->getVal() << endl;
                                     if (temp.at(i)->getVal() == "lamdaTuple")
                                     {
                                         tree *myLambda = temp.at(i)->left;
@@ -1503,25 +1406,14 @@ public:
 
     void printTuple(tree *tauNode, stack<tree *> &res)
     {
-
-        // cout <<  " aaja " << endl;
         if (tauNode == NULL)
             return;
         if (tauNode->getVal() == "lamdaTuple")
             return;
-        // cout << "(";
-        // while(tauNode != NULL){
         if (tauNode->getVal() != "tau" && tauNode->getVal() != "nil")
         {
-            // cout << " hello " << endl;
-            // if(tauNode->getType()=="STR") cout <<  tauNode->getVal().substr(1,tauNode->getVal().length()-2) << ", ";
-            // else cout << tauNode->getVal() << ", ";
-            // cout << " bye " << endl;
             res.push(tauNode);
         }
-        // cout << tauNode->getVal() << endl;
-        // }
-        //	cout << ")";
         printTuple(tauNode->left, res);
         printTuple(tauNode->right, res);
     }
@@ -1547,7 +1439,6 @@ public:
                 temp.replace(i, 1, "");
             }
         }
-        // cout << temp ;
         return temp;
     }
 
@@ -1560,14 +1451,10 @@ public:
         if (x == NULL)
             return;
 
-        // cout << " next token " <<x->getVal() << endl;
-
         if (x->getVal() == "lambda")
         {
             std::stringstream ss;
 
-            // if(i<=index)++index;
-            // else index = i+1;
             int t1 = i;
             int k = 0;
             setOfDelta[i][j] = createNode("", "");
@@ -1581,17 +1468,14 @@ public:
             i = t1;
             ss << k;
             index++;
-            // ss	<< ++index;
+
             string str = ss.str();
             tree *temp = createNode(str, "deltaNumber");
 
-            // cout << " pushing lambda val " << i << " " << j << endl;
             setOfDelta[i][j++] = temp;
 
-            // cout <<  " pushing left of lambda " << x->left->getVal() << i << " " << j << endl;
             setOfDelta[i][j++] = x->left;
 
-            // cout <<  " pushing lambda " << x->getVal() << i << " " << j << endl;
             setOfDelta[i][j++] = x;
 
             int myStoredIndex = i;
@@ -1613,28 +1497,24 @@ public:
             int nextDelta = index;
             int k = i;
 
-            // cout << " next Delta " << nextDelta << endl;
             std::stringstream ss2;
             ss2 << nextDelta;
             string str2 = ss2.str();
             tree *temp1 = createNode(str2, "deltaNumber");
-            // cout <<  " pushing number " << x->getVal() << i << " " << j << endl;
+
             setOfDelta[i][j++] = temp1;
 
             int nextToNextDelta = index;
             std::stringstream ss3;
             ss3 << nextToNextDelta;
             string str3 = ss3.str();
-            // cout <<  " pushing number " << x->getVal() << i << " " << j << endl;
             tree *temp2 = createNode(str3, "deltaNumber");
             setOfDelta[i][j++] = temp2;
 
-            // delta.push_back(x->left);
             tree *beta = createNode("beta", "beta");
-            // cout <<  " pushing number " << x->getVal() << i << " " << j << endl;
+
             setOfDelta[i][j++] = beta;
 
-            // cout << " print here " << setOfDelta[i][j-2]->getVal() <<  "  " <<  setOfDelta[i][j-1]->getVal() << endl;
             while (setOfDelta[k][0] != NULL)
             {
                 k++;
@@ -1645,43 +1525,25 @@ public:
             myDelta(x->left, setOfDelta);
             int diffLc = index - lamdaCount;
 
-            // cout<<"pushing1"<<endl;
             while (setOfDelta[i][0] != NULL)
                 i++;
             j = 0;
 
             myDelta(x->left->right, setOfDelta);
 
-            // cout<<"pushing2"<<endl;
-
             while (setOfDelta[i][0] != NULL)
                 i++;
             j = 0;
 
-            // cout << " kid 1 "<<x->left->getVal() << endl;
-            // cout << " kid 2 "<<x->left->right->getVal() << endl;
-            // cout << " kid 3 "<<x->left->right->right->getVal() << endl;
-
-            /*if(x->left->right->right != NULL) */
             myDelta(x->left->right->right, setOfDelta);
-
-            // cout<<"pushing5"<<endl;
-            // setOfDelta.push_back(delta);
-
-            // cout << " no of lambda is " << myStoredIndex << endl;
-            // cout << " j is " <<  j << endl;
 
             stringstream ss23;
             if (diffLc == 0 || i < lamdaCount)
             {
-                // cout << " lambda count " +  lamdaCount << endl;
-                // cout<< " index " << index << endl;
                 ss23 << firstIndex;
             }
             else
             {
-                // cout << " no lambda = index " << endl;
-                // cout << " index is " << endl;
                 ss23 << i - 1;
             }
 
@@ -1713,21 +1575,17 @@ public:
                 numOfChildren++;
                 tauLeft = tauLeft->right;
             }
-            // cout << " no of kids of tau here " << endl;
             std::stringstream ss;
             ss << numOfChildren;
             string str = ss.str();
             tree *countNode = createNode(str, "CHILDCOUNT");
-            // cout <<  " pushing child count  " << countNode->getVal() << i << " " << j << endl;
+
 
             setOfDelta[i][j++] = countNode; // putting the number of kids of tua
-            // x->setType("tau");
             tree *tauNode = createNode("tau", "tau");
-            // cout <<  " pushing tau node " << tauNode->getVal() << i << " " << j << endl;
 
             setOfDelta[i][j++] = tauNode; // putting the tau node and not pushing x
-            // x = x->left;
-            // myDelta(x->left,delta,setOfDelta,index); //calling the delta on kid of tau
+
             myDelta(x->left, setOfDelta);
             x = x->left;
             while (x != NULL)
@@ -1738,7 +1596,6 @@ public:
         }
         else
         {
-            // cout << " pushing to delta " << x->getVal() << " at pos " << i <<  " "<< j << endl;
             setOfDelta[i][j++] = createNode(x->getVal(), x->getType());
             myDelta(x->left, setOfDelta);
             if (x->left != NULL)
@@ -1748,43 +1605,18 @@ public:
 
     void makeST(tree *t)
     {
-        // tree *root;
         // standardizeAnd(t);
         makeStandard(t);
     }
-
-    /*print_preOrder(int dots, tree *t){
-        int n=0;
-        while(n<dots){
-            cout << ".";
-            n++;
-        }
-        //cout << val << " and " << type << endl;
-        if(t->getType() == "ID" || t->getType() == "STR" || t->getType() == "INT"){
-            t->setVal("<" + t->getType() + ":"+ t->getVal()+ ">") ;
-        }
-
-        cout << t->getVal() << endl;
-
-        if(t->left != NULL){
-            print_preOrder(dots+1,t->left);
-        }
-        if(t->right != NULL){
-            print_preOrder(dots,t->right);
-        }
-    } */
 
     tree *standardizeAnd(tree *t)
     {
         if (t == NULL)
             return NULL;
-        // cout << " val " << t->getVal() << endl;
 
         if (t->getVal() == "and")
         {
             tree *equal = t->left;
-            // cout << " my left " << equal->getVal() << endl;
-            // tree *restEqual = t->left->right;
             t->setVal("=");
             t->setType("KEYWORD");
             t->left = createNode(",", "PUNCTION");
@@ -1808,7 +1640,7 @@ public:
                 equal = equal->right;
             }
         }
-        // while()
+
         standardizeAnd(t->left);
         standardizeAnd(t->right);
 
@@ -1822,8 +1654,6 @@ public:
         makeStandard(t->left);
         makeStandard(t->right);
 
-        // cout << " my val " << t->getVal() << endl;
-
         if (t->getVal() == "let")
         {
             if (t->left->getVal() == "=")
@@ -1833,65 +1663,17 @@ public:
                 tree *P = createNode(t->left->right);
                 tree *X = createNode(t->left->left);
                 tree *E = createNode(t->left->left->right);
-                // t = t->left;
                 t->left = createNode("lambda", "KEYWORD");
                 t->left->right = E; // do i set the right pointer to null
                 tree *lambda = t->left;
                 lambda->left = X;
                 lambda->left->right = P;
-                // if(t->left->left != NULL)cout << " find comma" << t->left->left->getVal() << endl;
-                /*if(t->left->left->getVal()==","){
-                    tree *lamba = createNode(t->left);
-                    //cout << " hello 1" << endl;
-                    tree *X = lambda->left->left;
-                    tree *E = createNode(lambda->left->right);
-                    stack<tree*> num;
-                    //cout << " hello 2" << endl;
-                    while(X != NULL){
-                        tree *temp = createNode(X);
-                        num.push(temp);
-                        X = X->right;
-                    }
-                    //cout << " hello 3" << endl;
-                    lambda->left = createNode("T","KEYWORD");
-                    //lambda->left->right = createNode("gamma","KEYWORD");
-                    //lambda = lambda->left;
-                    while(!num.empty()){
-                        //cout << " hello 4" << endl;
-                        lambda->left->right = createNode("gamma","KEYWORD");
-                        lambda = lambda->left->right;
-                        //cout << " hello 4 a" << endl;
-
-                        lambda->left = createNode("lambda","KEYWORD");
-                        lambda->left->right = createNode("gamma","KEYWORD");
-                        lambda->left->left = num.top();
-                        //cout << " hello 4 b" << endl;
-
-                        //string  len = (string)num.size();
-                        std::stringstream ss;
-                        ss	<< num.size();
-                        string len = ss.str();
-                        num.pop();
-                        lambda->left->right->left = createNode("T","KEYWORD");
-                        lambda->left->right->left->right = createNode(len,"KEYWORD");
-                        //cout << " lambda->left " << lambda->left->getVal() << endl;
-                        lambda= lambda->left;
-                        //	cout << " hello 4 c" << endl;
-
-                    }
-                    //cout << " hello 5" << endl;
-                    if(num.empty()){
-                        lambda->left->right = E;
-                    }
-                    //cout << " hello 6" << endl;
-            } */
+              
             }
         }
         else if (t->getVal() == "and" && t->left->getVal() == "=")
         {
             tree *equal = t->left;
-            // cout << " my left " << equal->getVal() << endl;
-            // tree *restEqual = t->left->right;
             t->setVal("=");
             t->setType("KEYWORD");
             t->left = createNode(",", "PUNCTION");
@@ -1919,8 +1701,6 @@ public:
         {
             t->setVal("gamma");
             t->setType("KEYWORD");
-            // cout << " where left " << t->left->getVal() << endl;
-            // cout << " where left right "<<t->left->right->getVal() << endl;
             if (t->left->right->getVal() == "=")
             {
                 tree *P = createNode(t->left);
@@ -1928,107 +1708,10 @@ public:
                 tree *E = createNode(t->left->right->left->right);
                 t->left = createNode("lambda", "KEYWORD");
                 t->left->right = E;
-                // t = t->left;
                 t->left->left = X;
                 t->left->left->right = P;
             }
-        } /*else if(t->getVal()=="tau"){
-             //cout << t->getVal() << endl;
-             t->setVal("gamma");
-             t->setType("KEYWORD");
-             //if(t->left != NULL){
-                 tree *E = (t->left);
-             //	tree *firstE = t->left ;
-                 //firstE->right = NULL;
-
-                 stack<tree*> num;
-                 //num.push(firstE);
-                 while(E != NULL){
-                     tree *temp = createNode(E);
-                     //temp->right = NULL;
-                     num.push(temp);
-                     E = E->right;
-             //		cout<<"HELLO"<<endl;
-                 }
-
-             //	cout << " here " << endl;
-                 tree *firstE = num.top();
-                 num.pop();
-             //	cout << " first E "<<firstE->getVal() << endl;
-
-                 t->left = createNode("gamma","KEYWORD");
-
-                 tree *gamma = t->left;
-                 gamma->right = createNode(firstE);
-                 gamma->left = createNode("aug", "KEYWORD");
-                 gamma = gamma->left;
-                 //cout << " now start adding rest " << gamma->getVal() << endl;
-
-                 while(!num.empty()){
-                     tree *temp = num.top();
-                     num.pop();
-                     gamma->right = createNode("gamma","KEYWORD");
-                     gamma = gamma->right;
-                     //cout << " on right of aug should be gamma " << gamma->getVal() << endl;
-                     gamma->left = createNode("gamma", "KEYWORD");
-                     //cout << " new gamma on left " << gamma->left->getVal() << endl;
-
-                     gamma->left->right = createNode(temp);
-                     //cout << " gamma->left->right " << gamma->left->right->getVal() << endl;
-                     gamma->left->left = createNode("aug", "KEYWORD");
-                     //cout << " gamma->left->left should be aug " << gamma->left->left->getVal() << endl;
-                     gamma = gamma->left->left;
-                     //cout << " for next stay at aug " << gamma->getVal() << endl;
-                 }
-
-                 if(num.empty()){
-                     gamma->right = createNode("nil","KEYWORD");
-                 }
-                 //cout << " t "<<t->getVal() << endl;
-                 //cout << " t-> left " << t->left->getVal() << endl;
-                 //cout << " t left right " << t->left->right->getVal() << endl;
-
-         } else if(t->getVal()=="->"){
-             tree *B = createNode(t->left);
-             tree *T = createNode(t->left->right);
-             tree *E = createNode(t->left->right->right); //after this need to see what links to change
-             //t = createNode("gamma","KEYWORD");
-             t->setVal("gamma");
-             t->setType("KEYWORD");
-
-             t->left = createNode("gamma","KEYWORD");
-             t->left->right = createNode("nil","KEYWORD");
-             tree *tLeft = t->left;
-             tLeft->left = createNode("gamma","KEYWORD");
-             tLeft->left->right = createNode("lambda","KEYWORD");
-             tLeft->left->right->left = createNode("()","KEYWORD");
-             tLeft->left->right->left->right = E;
-             tLeft = tLeft->left;
-             tLeft->left = createNode("gamma","KEYWORD");
-             tLeft->left->right = createNode("lambda","KEYWORD");
-             tLeft->left->right->left = createNode("()","KEYWORD");
-             tLeft->left->right->left->right = T;
-             tLeft->left->left = createNode("Cond","KEYWORD");
-             tLeft->left->left->right = B;
-
-         }else if(t->getVal()=="not"){
-             tree *E = createNode(t->left);
-             //t = createNode("gamma","KEYWORD");
-             t->setVal("gamma");
-             t->setType("KEYWORD");
-
-             t->left = createNode("not","KEYWORD");
-             t->left->right = E;
-
-         }else if(t->getVal()=="neg"){
-             tree *E = createNode(t->left);
-             //t = createNode("gamma","KEYWORD");
-             t->setVal("gamma");
-             t->setType("KEYWORD");
-             t->left = createNode("neg","KEYWORD");
-             t->left->right = E;
-
-         }*/
+        } 
         else if (t->getVal() == "within")
         {
             if (t->left->getVal() == "=" && t->left->right->getVal() == "=")
@@ -2037,7 +1720,6 @@ public:
                 tree *E1 = createNode(t->left->left->right);
                 tree *X2 = createNode(t->left->right->left);
                 tree *E2 = createNode(t->left->right->left->right);
-                // t = createNode("=","KEYWORD");
                 t->setVal("=");
                 t->setType("KEYWORD");
                 t->left = X2;
@@ -2052,13 +1734,8 @@ public:
         }
         else if (t->getVal() == "rec" && t->left->getVal() == "=")
         {
-            // cout << t->getVal() << " here in rec " << endl;
             tree *X = createNode(t->left->left);
             tree *E = createNode(t->left->left->right);
-            // cout << " x left " << E->left->getVal() << endl;
-            // cout << " x left right " << E->left->right->getVal() << endl;
-            // cout << " x left right left" << E->left->right->left->getVal() << endl;
-            // cout << " x left->left " << E->left->left->getVal() << endl;
 
             t->setVal("=");
             t->setType("KEYWORD");
@@ -2066,32 +1743,22 @@ public:
             t->left->right = createNode("gamma", "KEYWORD");
             t->left->right->left = createNode("YSTAR", "KEYWORD");
             tree *ystar = t->left->right->left;
-            // t->left->right->left->right = createNode("lambda","KEYWORD");
+
             ystar->right = createNode("lambda", "KEYWORD");
-            // cout<<"CHECK+ "<<t->left->right->left->right->getVal();
-            // cout << X->getVal() << endl;
-            // cout << E->getVal() << endl << " hello 54535";
-            // t->left->right->left->right->left = X;
-            // t->left->right->left->right->left->right = E;
+
             ystar->right->left = createNode(X);
             ystar->right->left->right = createNode(E);
 
-            //}
-            // cout << " printing rec tree" << endl;
-            // t->print_tree(0) ;
         }
         else if (t->getVal() == "function_form")
         {
-            // cout << " function form " << t->getVal() << endl;
             tree *P = createNode(t->left);
             tree *V = t->left->right;
-            // tree *E = t->left->right->right;
-            // t->setVal("=");
-            // t= createNode("=","KEYWORD");
+
             t->setVal("=");
             t->setType("KEYWORD");
             t->left = P;
-            // t->left->right = createNode("lambda","KEYWORD");
+
             tree *temp = t;
             while (V->right->right != NULL)
             {
@@ -2106,7 +1773,6 @@ public:
 
             temp->left = createNode(V);
             temp->left->right = V->right;
-          
         }
         else if (t->getVal() == "lambda")
         {
@@ -2118,62 +1784,28 @@ public:
                 {
                     while (V->right->right != NULL)
                     {
-                        // cout << " here 1 " << V->getVal() << endl;
                         temp->left->right = createNode("lambda", "KEYWORD");
                         temp = temp->left->right;
                         temp->left = createNode(V);
-                        // temp = temp->left->right;
                         V = V->right;
                     }
 
                     temp->left->right = createNode("lambda", "KEYWORD");
                     temp = temp->left->right;
-                    // cout << " lambda " << temp->getVal() << endl ;
-                    // cout << " V " << V->getVal() << endl;
-                    // cout << " V->right " << V->right->getVal() << endl;
-                    // if(V->right == NULL){
                     temp->left = createNode(V);
                     temp->left->right = V->right;
                 }
-                //}
             }
-        } /*else if(t->getVal() == "+" || t->getVal() == "-" || t->getVal() == "*" || t->getVal() == "/" || t->getVal() == "**"
-         || t->getVal() == "&" || t->getVal() == "gr" || t->getVal() == "ge" || t->getVal() == "ls" || t->getVal() == "le"
-         || t->getVal() == "eq" || t->getVal() == "ne"  ){
-         string op = t->getVal();
-         //cout << " operator " << t->getVal() << endl;
-         tree *E1 = createNode(t->left);
-         //cout << " E1 " << t->left->getVal() << endl;
-         if(t->left->right != NULL){
-             tree *E2 = createNode(t->left->right);
-             //cout << " E2 " << E2->getVal() << endl;
-             //t =  createNode("gamma","KEYWORD");
-             t->setVal("gamma");
-             t->setType("KEYWORD");
-             t->left = createNode("gamma","KEYWORD");
-             t->left->right = E2;
-             tree *tLeft= t->left;
-             tLeft->left = createNode(op,"KEYWORD");
-             tLeft->left->right = E1;
-         }else{
-             //t = createNode("gamma","KEYWORD");
-             t->setVal("gamma");
-             t->setType("KEYWORD");
-             t->left = createNode("gamma","KEYWORD");
-             t->left->right = E1;
-         }
-     }*/
+        } 
         else if (t->getVal() == "@")
         {
             tree *E1 = createNode(t->left);
             tree *N = createNode(t->left->right);
             tree *E2 = createNode(t->left->right->right);
-            // t=  createNode("gamma","KEYWORD");
             t->setVal("gamma");
             t->setType("KEYWORD");
             t->left = createNode("gamma", "KEYWORD");
             t->left->right = E2;
-            // t= t->left;
             t->left->left = N;
             t->left->left->right = E1;
         }
@@ -2270,38 +1902,28 @@ public:
 
     void proc_B()
     {
-        // cout<< " Enter B with token "  << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() << endl;
-        // cout << " inside B" << endl;
         proc_Bt();
-        // cout << " back to b with token " << nt.getVal() << " and type " << nt.getType() << " stack size " << st.size() << endl;
         while (nt.getVal() == "or")
         {
             read("or", "KEYWORD");
             proc_Bt();
             build_tree("or", "KEYWORD", 2);
         }
-        // cout<< " Exit B with token "  << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() << endl;
     }
 
     void proc_Bt()
     {
-        // cout << " Enter Bt with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
-        // cout << " inside Bt " << endl;
         proc_Bs();
-        // cout << " back to bt with token " << nt.getVal() << " and type " << nt.getType() << " stack size " << st.size() << endl;
         while (nt.getVal() == "&")
         {
             read("&", "OPERATOR");
             proc_Bs();
             build_tree("&", "KEYWORD", 2);
         }
-        //	cout << " Exit Bt with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_Bs()
     {
-        // cout << " inside bs " << endl;
-        // cout << " Enter Bs with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
 
         if (nt.getVal() == "not")
         {
@@ -2312,70 +1934,55 @@ public:
         else
         {
             proc_Bp();
-            //	cout << " back to bs with token " << nt.getVal() << " and type " << nt.getType() << " stack size " << st.size() << endl;
         }
-        // cout << " Exit Bs with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_Bp()
     {
-        // cout << " inside Bp" << endl;
-        // cout << " Enter Bp with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
-
         proc_A();
         string temp = nt.getVal();
         string temp2 = nt.getType();
-        // cout << " back to Bp with token " << nt.getVal() << " and type " << nt.getType() << "stack size " << st.size() << endl;
+
         if (nt.getVal() == "gr" || nt.getVal() == ">")
         {
-            // read("gr","KEYWORD");
             read(temp, temp2);
             proc_A();
             build_tree("gr", "KEYWORD", 2);
         }
         else if (nt.getVal() == "ge" || nt.getVal() == ">=")
         {
-            // read("ge","KEYWORD");
             read(temp, temp2);
             proc_A();
             build_tree("ge", "KEYWORD", 2);
         }
         else if (nt.getVal() == "ls" || nt.getVal() == "<")
         {
-            // read("ls","KEYWORD");
             read(temp, temp2);
             proc_A();
             build_tree("ls", "KEYWORD", 2);
         }
         else if (nt.getVal() == "le" || nt.getVal() == "<=")
         {
-            // read("le","KEYWORD");
             read(temp, temp2);
             proc_A();
             build_tree("le", "KEYWORD", 2);
         }
         else if (nt.getVal() == "eq")
         {
-            // read("eq","KEYWORD");
             read(temp, temp2);
             proc_A();
-            //	cout << " back to Bp with token " << nt.getVal() << " with stack size " << st.size() << endl;
             build_tree("eq", "KEYWORD", 2);
         }
         else if (nt.getVal() == "ne")
         {
-            // read("ne","KEYWORD");
             read(temp, temp2);
             proc_A();
             build_tree("ne", "KEYWORD", 2);
         }
-        // cout << " Exit Bp with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_A()
     {
-        // cout << " inside A " << endl;
-        //	cout << " Enter A with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
         if (nt.getVal() == "-")
         {
             read("-", "OPERATOR");
@@ -2390,7 +1997,6 @@ public:
         else
         {
             proc_At();
-            //	cout << " back to A with token " << nt.getVal() << " and type  " << nt.getType() << " and size "<< st.size() <<endl;
         }
 
         while (nt.getVal() == "+" || nt.getVal() == "-")
@@ -2400,16 +2006,12 @@ public:
             proc_At();
             build_tree(temp, "OPERATOR", 2);
         }
-        //	cout << " Exit A with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_At()
     {
-        // cout << " inside At " << endl;
-        //	cout << " Enter At with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
 
         proc_Af();
-        //	cout << " back to At with token " << nt.getVal() << " and type " << nt.getType() << " with size "<< st.size() <<endl;
         while (nt.getVal() == "*" || nt.getVal() == "/")
         {
             string temp = nt.getVal();
@@ -2417,32 +2019,23 @@ public:
             proc_Af();
             build_tree(temp, "OPERATOR", 2);
         }
-        //	cout << " Exit At with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_Af()
     {
-        // cout << " inside Af " << endl;
-        //	cout << " Enter Af with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
         proc_Ap();
-        //	cout << " back to Af with token " << nt.getVal() << " and type " << nt.getType() << " and size "<< st.size() <<endl;
+
         if (nt.getVal() == "**")
         {
             read("**", "OPERATOR");
             proc_Af();
             build_tree("**", "KEYWORD", 2);
         }
-        //	cout << " Exit Af with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_Ap()
     {
-        // cout << " inside Ap " << endl;
-        //	cout << " Enter Ap with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
-
         proc_R();
-        //	cout << " back to Ap with token " << nt.getVal() << " and size " << st.size() << endl;
-        // token temp;
         while (nt.getVal() == "@")
         {
             read("@", "OPERATOR"); // read a type ID
@@ -2454,36 +2047,25 @@ public:
             {
                 read(nt.getVal(), "ID");
                 proc_R();
-                //		    cout << " back to Ap token is " << nt.getVal() << " type " << nt.getType() << " and size "  << st.size() << endl;
                 build_tree("@", "KEYWORD", 3);
             }
         }
-        //	cout << " Exit Ap with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_R()
     {
-        // cout << " inside R " << endl;
-        //	cout << " Enter R with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
         proc_Rn();
-        //	cout << " coming back to R with token " << nt.getVal() <<  " with size "<< st.size()  <<endl;
-        //	cout << " in R " << nt.getType() << " with token " << nt.getVal() << endl;
-        // cout << " again executing rn for token " << nt.getVal() << endl;
         while (nt.getType() == "ID" || nt.getType() == "INT" || nt.getType() == "STR" || nt.getVal() == "true" || nt.getVal() == "false" || nt.getVal() == "dummy" || nt.getVal() == "nil" || nt.getVal() == "(")
         {
             proc_Rn();
-            build_tree("gamma", "KEYWORD", 2); // keep reading till valid node from rn comes
-                                               //		cout << " token " << nt.getVal() << " if of type " << nt.getType() << endl;
+            build_tree("gamma", "KEYWORD", 2); 
         }
-        //	cout << " Exit R with token " << nt.getVal() << " with type " << nt.getType() << "  with size " << st.size() << endl;
     }
 
     void proc_Rn()
     {
-        //	cout << " Enter Rn  " <<" with token " << nt.getVal() << " and type " << nt.getType() << "in Rn with size " << st.size() <<endl;
         if (nt.getType() == "ID" || nt.getType() == "INT" || nt.getType() == "STR")
         {
-            // cout << " this is " << nt.getType() << endl;
             read(nt.getVal(), nt.getType());
         }
         else if (nt.getVal() == "true")
@@ -2498,30 +2080,24 @@ public:
         }
         else if (nt.getVal() == "nil")
         {
-            read("nil", "KEYWORD"); // i think i need to pass tokentype
+            read("nil", "KEYWORD");
             build_tree("nil", "NIL", 0);
         }
         else if (nt.getVal() == "(")
         {
-            // cout << " i got here with " << nt.getVal() << endl;
             read("(", "PUNCTION");
-            // cout << nt.getVal() << " with type before E " << nt.getType() << endl;
             proc_E();
-            // cout << " came back to Rn with token " << nt.getVal() << endl;
-            read(")", "PUNCTION"); // read ")" punction
+            read(")", "PUNCTION");
         }
         else if (nt.getVal() == "dummy")
         {
             read("dummy", "KEYWORD");
             build_tree("dummy", "DUMMY", 0);
         }
-        //	cout << " Exit Rn  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
     }
 
     void proc_D()
     {
-        //	cout << " Enter D  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
-        // cout << " inside D " << endl;
         proc_Da();
         if (nt.getVal() == "within")
         {
@@ -2529,13 +2105,10 @@ public:
             proc_Da();
             build_tree("within", "KEYWORD", 2);
         }
-        //	cout << " Exit D  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
     }
 
     void proc_Da()
     {
-        //	cout << " Enter Da  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
-        // cout << " inside Da" << endl;
         proc_Dr();
         int n = 1;
         while (nt.getVal() == "and")
@@ -2548,13 +2121,10 @@ public:
         {
             build_tree("and", "KEYWORD", n);
         }
-        //	cout << " Exit Da  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
     }
 
     void proc_Dr()
     {
-        //	cout << " Enter Dr  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
-        // cout << " inside Dr " << endl;
         if (nt.getVal() == "rec")
         {
             read("rec", "KEYWORD");
@@ -2565,40 +2135,33 @@ public:
         {
             proc_Db();
         }
-        //	cout << " Exit Dr  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
     }
 
     void proc_Db()
-    { // verify this function doubtful, sort of read functuon and getTOken
-        //	cout << " inside Db " << endl;
-        // cout << " Enter Db  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
-        // token temp;
+    { 
         if (nt.getVal() == "(")
         {
             read("(", "PUNCTION");
             proc_D();
-            read(")", "PUNCTION"); // read ")"
+            read(")", "PUNCTION");
         }
         else if (nt.getType() == "ID")
         {
             read(nt.getVal(), "ID");
             int n = 1;
             if (nt.getVal() == "=" || nt.getVal() == ",")
-            { // do i need to read a token here ????
+            { 
                 while (nt.getVal() == ",")
                 {
                     read(",", "PUNCTION");
-                    // temp.setVal(nt.getVal());
-                    // temp.setType("ID");
                     read(nt.getVal(), "ID");
-                    // read(nt);
                     n++;
                 }
                 if (n > 1)
                 {
                     build_tree(",", "KEYWORD", n);
                 }
-                read("=", "OPERATOR"); // read "="
+                read("=", "OPERATOR");
                 proc_E();
                 build_tree("=", "KEYWORD", 2);
             }
@@ -2609,18 +2172,15 @@ public:
                     proc_Vb();
                     n++;
                 } while (nt.getType() == "ID" || nt.getVal() == "(");
-                read("=", "OPERATOR"); // read "="
+                read("=", "OPERATOR"); 
                 proc_E();
                 build_tree("function_form", "KEYWORD", n + 1);
             }
         }
-        //	cout << " Exit Db  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
     }
 
     void proc_Vb()
     {
-        //	cout << " inside Vb" << endl;
-        // cout << " Enter Vb  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
         if (nt.getType() == "ID")
         {
             read(nt.getVal(), "ID");
@@ -2636,30 +2196,25 @@ public:
             else
             {
                 proc_Vl();
-                //			cout << " came back from Vl " << endl;
-                read(")", "PUNCTION"); // read ")"
+                read(")", "PUNCTION"); 
             }
         }
-        // cout << " Exit Vb  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
     }
 
     void proc_Vl()
     {
-        //	cout << " inside Vl" << endl;
-        // cout << " Enter Vl  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
         int n = 1;
-        read(nt.getVal(), "ID"); // read type ID
+        read(nt.getVal(), "ID");
 
         while (nt.getVal() == ",")
         {
-            read(",", "PUNCTION");   // read "," and get next ID
-            read(nt.getVal(), "ID"); // read and build tree for next ID and get next "," or anything else
+            read(",", "PUNCTION");
+            read(nt.getVal(), "ID");
             n++;
         }
         if (n > 1)
         {
             build_tree(",", "KEYWORD", n);
         }
-        // cout << " Exit Vl  " <<" with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() <<endl;
     }
 };
