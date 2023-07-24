@@ -80,7 +80,7 @@ void tree::print_tree(int dots)
 		n++;
 	}
 
-	if (type == "ID" || type == "STR" || type == "INT")
+	if (type == "IDENTIFIER" || type == "STRING" || type == "INTEGER")
 	{
 		cout << "<";
 		cout << type;
@@ -92,7 +92,7 @@ void tree::print_tree(int dots)
 
 	cout << val;
 
-	if (type == "ID" || type == "STR" || type == "INT")
+	if (type == "IDENTIFIER" || type == "STRING" || type == "INTEGER")
 		cout << ">";
 
 	if (type == "BOOL" || type == "NIL" || type == "DUMMY")

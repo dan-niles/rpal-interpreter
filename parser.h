@@ -24,7 +24,7 @@ char operators[] = {'+', '-', '*', '<', '>', '&', '.', '@', '/', ':', '=', '~', 
 class parser
 {
 public:
-    token nt;            // Non-terminal
+    token nextToken;            // Next token
     char readnew[10000]; // Read new character
     int index;           // Index of character
     int sizeOfFile;      // Size of file
@@ -107,22 +107,22 @@ public:
     // Read the next token
     void read(string val, string type)
     {
-        if (val != nt.getVal() || type != nt.getType())
+        if (val != nextToken.getVal() || type != nextToken.getType())
         {
-            cout << "Expected : " << val << " - " << type << " but found : " << nt.getVal() << " - " << nt.getType() << endl;
+            cout << "Expected : " << val << " - " << type << " but found : " << nextToken.getVal() << " - " << nextToken.getType() << endl;
             exit(0);
         }
 
-        if (type == "ID" || type == "INT" || type == "STR")
+        if (type == "IDENTIFIER" || type == "INTEGER" || type == "STRING")
         {
             build_tree(val, type, 0);
         }
 
-        nt = getToken(readnew);
+        nextToken = getToken(readnew);
 
-        while (nt.getType() == "DELETE")
+        while (nextToken.getType() == "DELETE")
         {
-            nt = getToken(readnew);
+            nextToken = getToken(readnew);
         }
     }
 
@@ -172,14 +172,14 @@ public:
     token getToken(char read[])
     {
         token t;
-        int i = index; // Index of character
-        string id = ""; // Identifier
-        string num = ""; // Number
-        string isop = ""; // Operator
-        string isString = ""; // String
-        string isPun = ""; // Punctuation
+        int i = index;         // Index of character
+        string id = "";        // Identifier
+        string num = "";       // Number
+        string isop = "";      // Operator
+        string isString = "";  // String
+        string isPun = "";     // Punctuation
         string isComment = ""; // Comment
-        string isSpace = ""; // Space
+        string isSpace = "";   // Space
 
         // Check if end of file is reached
         if (read[i] == '\0' || i == sizeOfFile)
@@ -202,7 +202,7 @@ public:
                 }
                 index = i;
                 t.setVal(num);
-                t.setType("INT");
+                t.setType("INTEGER");
                 return t;
             }
             // Check if character is an alphabet letter
@@ -225,7 +225,7 @@ public:
                 {
                     index = i;
                     t.setVal(id);
-                    t.setType("ID");
+                    t.setType("IDENTIFIER");
                     return t;
                 }
             }
@@ -301,7 +301,7 @@ public:
                 }
                 index = i;
                 t.setVal(isString);
-                t.setType("STR");
+                t.setType("STRING");
                 return t;
             }
             else if (read[i] == ')' || read[i] == '(' || read[i] == ';' || read[i] == ',')
@@ -344,17 +344,17 @@ public:
     // Start parsing
     void parse()
     {
-        nt = getToken(readnew); // Get the first token
-        while (nt.getType() == "DELETE") // Ignore all DELETE tokens
+        nextToken = getToken(readnew);          // Get the first token
+        while (nextToken.getType() == "DELETE") // Ignore all DELETE tokens
         {
-            nt = getToken(readnew);
+            nextToken = getToken(readnew);
         }
 
-        proc_E(); // Start parsing from E
+        procedure_E(); // Start parsing from E
 
-        while (nt.getType() == "DELETE") // Ignore all DELETE tokens
+        while (nextToken.getType() == "DELETE") // Ignore all DELETE tokens
         {
-            nt = getToken(readnew);
+            nextToken = getToken(readnew);
         }
 
         if (index >= sizeOfFile - 1) // Check if end of file is reached
@@ -362,7 +362,7 @@ public:
             tree *t = st.top(); // Get the root of the tree
 
             // Print the tree
-            if (astFlag == 1) 
+            if (astFlag == 1)
             {
                 t->print_tree(0);
             }
@@ -379,7 +379,7 @@ public:
             while (setOfDeltaArray[size][0] != NULL)
                 size++;
 
-            vector<vector<tree *> > setOfDelta;
+            vector<vector<tree *>> setOfDelta;
             for (int i = 0; i < size; i++)
             {
                 vector<tree *> temp;
@@ -396,12 +396,12 @@ public:
     }
 
     // Control Stack Environment Machine
-    void cse_machine(vector<vector<tree *> > &controlStructure)
+    void cse_machine(vector<vector<tree *>> &controlStructure)
     {
         stack<tree *> control;
         stack<tree *> machine;
         stack<environment *> stackOfEnvironment; // Stack of environments
-        stack<environment *> getCurrEnvironment; 
+        stack<environment *> getCurrEnvironment;
 
         int currEnvIndex = 0;                     // Initial environment
         environment *currEnv = new environment(); // env0;
@@ -430,7 +430,7 @@ public:
                 nextToken->setType("tau");
             }
 
-            if (nextToken->getType() == "INT" || nextToken->getType() == "STR" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || (nextToken->getVal() == "Conc" /*&& behind->getVal()=="gamma" && behind2->getVal()=="gamma"*/) || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil" || nextToken->getVal() == "ItoS" /*|| isBiOper(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not"*/)
+            if (nextToken->getType() == "INTEGER" || nextToken->getType() == "STRING" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || (nextToken->getVal() == "Conc" /*&& behind->getVal()=="gamma" && behind2->getVal()=="gamma"*/) || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil" || nextToken->getVal() == "ItoS" /*|| isBiOper(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not"*/)
             {
                 if (nextToken->getVal() == "lambda")
                 {
@@ -516,7 +516,7 @@ public:
 
                             vector<tree *> listOfNodeVal;
                             listOfNodeVal.push_back(boundValues.at(i));
-                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVariables.at(i), listOfNodeVal));
+                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVariables.at(i), listOfNodeVal));
                         }
                     }
                     else if (machine.top()->getVal() == "eta")
@@ -539,7 +539,7 @@ public:
                             listOfNodeVal.push_back(fromStack);
                         }
 
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
                     }
                     else if (machine.top()->getVal() == "lambda")
                     {
@@ -560,7 +560,7 @@ public:
                             temp.pop();
                             listOfNodeVal.push_back(fromStack);
                         }
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
                     }
                     else if (machine.top()->getVal() == "Conc")
                     {
@@ -581,7 +581,7 @@ public:
                             temp.pop();
                             listOfNodeVal.push_back(fromStack);
                         }
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
                     }
                     else
                     {
@@ -590,7 +590,7 @@ public:
                         machine.pop();
                         vector<tree *> listOfNodeVal;
                         listOfNodeVal.push_back(bindVarVal);
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
                     }
 
                     currEnv = newEnv;
@@ -722,13 +722,13 @@ public:
                         cout << "(";
                         while (getRev.size() > 1)
                         {
-                            if (getRev.top()->getType() == "STR")
+                            if (getRev.top()->getType() == "STRING")
                                 cout << addSpaces(getRev.top()->getVal()) << ", ";
                             else
                                 cout << getRev.top()->getVal() << ", ";
                             getRev.pop();
                         }
-                        if (getRev.top()->getType() == "STR")
+                        if (getRev.top()->getType() == "STRING")
                             cout << addSpaces(getRev.top()->getVal()) << ")";
                         else
                             cout << getRev.top()->getVal() << ")";
@@ -737,7 +737,7 @@ public:
                     else
                     {
 
-                        if (machine.top()->getType() == "STR")
+                        if (machine.top()->getType() == "STRING")
                             cout << addSpaces(machine.top()->getVal());
                         else
                             cout << machine.top()->getVal();
@@ -748,7 +748,7 @@ public:
                     machine.pop();
                     tree *isNextInt = machine.top();
                     machine.pop();
-                    if (isNextInt->getType() == "INT")
+                    if (isNextInt->getType() == "INTEGER")
                     {
                         tree *resNode = createNode("true", "boolean");
                         machine.push(resNode);
@@ -763,7 +763,7 @@ public:
                 {
                     machine.pop();
                     tree *isNextBool = machine.top();
-                    machine.pop(); 
+                    machine.pop();
                     if (isNextBool->getVal() == "true" || isNextBool->getVal() == "false")
                     {
                         tree *resNode = createNode("true", "BOOL");
@@ -780,7 +780,7 @@ public:
                     machine.pop();
                     tree *isNextString = machine.top();
                     machine.pop();
-                    if (isNextString->getType() == "STR")
+                    if (isNextString->getType() == "STRING")
                     {
                         tree *resNode = createNode("true", "BOOL");
                         machine.push(resNode);
@@ -849,11 +849,11 @@ public:
                         return;
                     }
 
-                    if (isNextString->getType() == "STR")
+                    if (isNextString->getType() == "STRING")
                     {
                         string strRes = "'" + isNextString->getVal().substr(2, isNextString->getVal().length() - 3) + "'";
                         machine.pop();
-                        machine.push(createNode(strRes, "STR"));
+                        machine.push(createNode(strRes, "STRING"));
                     }
                 }
                 else if (machineTop->getVal() == "Stem")
@@ -867,11 +867,11 @@ public:
                         return;
                     }
 
-                    if (isNextString->getType() == "STR")
+                    if (isNextString->getType() == "STRING")
                     {
                         string strRes = "'" + isNextString->getVal().substr(1, 1) + "'";
                         machine.pop();
-                        machine.push(createNode(strRes, "STR"));
+                        machine.push(createNode(strRes, "STRING"));
                     }
                 }
                 else if (machineTop->getVal() == "Order")
@@ -903,7 +903,7 @@ public:
                     stringstream ss11;
                     ss11 << numOfKids;
                     string str34 = ss11.str();
-                    tree *orderNode = createNode(str34, "INT");
+                    tree *orderNode = createNode(str34, "INTEGER");
                     machine.push(orderNode);
                 }
                 else if (machineTop->getVal() == "Conc")
@@ -913,11 +913,11 @@ public:
                     tree *firstString = machine.top();
                     machine.pop();
                     tree *secondString = machine.top();
-                    if (secondString->getType() == "STR" || (secondString->getType() == "STR" && secondString->left != NULL && secondString->left->getVal() == "true"))
+                    if (secondString->getType() == "STRING" || (secondString->getType() == "STRING" && secondString->left != NULL && secondString->left->getVal() == "true"))
                     {
                         machine.pop();
                         string res = "'" + firstString->getVal().substr(1, firstString->getVal().length() - 2) + secondString->getVal().substr(1, secondString->getVal().length() - 2) + "'";
-                        tree *resNode = createNode(res, "STR");
+                        tree *resNode = createNode(res, "STRING");
                         machine.push(resNode);
                         control.pop();
                     }
@@ -933,7 +933,7 @@ public:
                     machine.pop(); // popping ItoS
                     tree *convertToString = machine.top();
                     machine.pop();
-                    machine.push(createNode("'" + convertToString->getVal() + ",", "STR"));
+                    machine.push(createNode("'" + convertToString->getVal() + ",", "STRING"));
                 }
             }
             else if (nextToken->getVal().substr(0, 3) == "env")
@@ -985,14 +985,14 @@ public:
                     removeFromMachineToPutBack.pop();
                 }
             }
-            else if (nextToken->getType() == "ID" && nextToken->getVal() != "Print" && nextToken->getVal() != "Isinteger" && nextToken->getVal() != "Istruthvalue" && nextToken->getVal() != "Isstring" && nextToken->getVal() != "Istuple" && nextToken->getVal() != "Isfunction" && nextToken->getVal() != "Isdummy" && nextToken->getVal() != "Stem" && nextToken->getVal() != "Stern" && nextToken->getVal() != "Conc")
+            else if (nextToken->getType() == "IDENTIFIER" && nextToken->getVal() != "Print" && nextToken->getVal() != "Isinteger" && nextToken->getVal() != "Istruthvalue" && nextToken->getVal() != "Isstring" && nextToken->getVal() != "Istuple" && nextToken->getVal() != "Isfunction" && nextToken->getVal() != "Isdummy" && nextToken->getVal() != "Stem" && nextToken->getVal() != "Stern" && nextToken->getVal() != "Conc")
             {
                 environment *temp = currEnv;
                 int flag = 0;
                 while (temp != NULL)
                 {
 
-                    map<tree *, vector<tree *> >::iterator itr = temp->boundVar.begin();
+                    map<tree *, vector<tree *>>::iterator itr = temp->boundVar.begin();
                     while (itr != temp->boundVar.end())
                     {
                         if (nextToken->getVal() == itr->first->getVal())
@@ -1051,7 +1051,7 @@ public:
                     machine.pop();
                     tree *node2 = machine.top();
                     machine.pop();
-                    if (node1->getType() == "INT" && node2->getType() == "INT")
+                    if (node1->getType() == "INTEGER" && node2->getType() == "INTEGER")
                     {
                         int num1;
                         int num2;
@@ -1069,7 +1069,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INT");
+                            tree *res = createNode(str, "INTEGER");
                             machine.push(res);
                         }
                         else if (op == "-")
@@ -1078,7 +1078,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INT");
+                            tree *res = createNode(str, "INTEGER");
                             machine.push(res);
                         }
                         else if (op == "*")
@@ -1087,7 +1087,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INT");
+                            tree *res = createNode(str, "INTEGER");
                             machine.push(res);
                         }
                         else if (op == "/")
@@ -1098,7 +1098,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INT");
+                            tree *res = createNode(str, "INTEGER");
                             machine.push(res);
                         }
                         else if (op == "**")
@@ -1107,7 +1107,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INT");
+                            tree *res = createNode(str, "INTEGER");
                             machine.push(res);
                         }
                         else if (op == "gr" || op == ">")
@@ -1147,7 +1147,7 @@ public:
                             machine.push(res);
                         }
                     }
-                    else if (node1->getType() == "STR" && node2->getType() == "STR")
+                    else if (node1->getType() == "STRING" && node2->getType() == "STRING")
                     {
                         if (op == "ne" || op == "<>")
                         {
@@ -1223,7 +1223,7 @@ public:
                         stringstream ss;
                         ss << res;
                         string str = ss.str();
-                        tree *resStr = createNode(str, "INT");
+                        tree *resStr = createNode(str, "INTEGER");
                         machine.push(resStr);
                     }
                     else if (op == "not" && (machine.top()->getVal() == "true" || machine.top()->getVal() == "false"))
@@ -1580,7 +1580,6 @@ public:
             string str = ss.str();
             tree *countNode = createNode(str, "CHILDCOUNT");
 
-
             setOfDelta[i][j++] = countNode; // putting the number of kids of tua
             tree *tauNode = createNode("tau", "tau");
 
@@ -1668,7 +1667,6 @@ public:
                 tree *lambda = t->left;
                 lambda->left = X;
                 lambda->left->right = P;
-              
             }
         }
         else if (t->getVal() == "and" && t->left->getVal() == "=")
@@ -1711,7 +1709,7 @@ public:
                 t->left->left = X;
                 t->left->left->right = P;
             }
-        } 
+        }
         else if (t->getVal() == "within")
         {
             if (t->left->getVal() == "=" && t->left->right->getVal() == "=")
@@ -1748,7 +1746,6 @@ public:
 
             ystar->right->left = createNode(X);
             ystar->right->left->right = createNode(E);
-
         }
         else if (t->getVal() == "function_form")
         {
@@ -1796,7 +1793,7 @@ public:
                     temp->left->right = V->right;
                 }
             }
-        } 
+        }
         else if (t->getVal() == "@")
         {
             tree *E1 = createNode(t->left);
@@ -1813,61 +1810,68 @@ public:
         return NULL;
     }
 
-    void proc_E()
+    /* -------------------------------- Grammar Rules -------------------------------- */
+
+    // E -> ’let’ D ’in’ E | ’fn’ Vb+ ’.’ E | Ew
+    void procedure_E()
     {
-        if (nt.getVal() == "let")
+        // E -> ’let’ D ’in’ E
+        if (nextToken.getVal() == "let")
         {
             read("let", "KEYWORD");
-            proc_D();
+            procedure_D();
 
             read("in", "KEYWORD"); // read in
-            proc_E();
-        
+            procedure_E();
+
             build_tree("let", "KEYWORD", 2);
         }
-        else if (nt.getVal() == "fn")
+        // E -> ’fn’ Vb+ ’.’ E
+        else if (nextToken.getVal() == "fn")
         {
             int n = 0;
             read("fn", "KEYWORD");
             do
             {
-                proc_Vb();
+                procedure_Vb();
                 n++;
-            } while (nt.getType() == "ID" || nt.getVal() == "(");
-            read(".", "OPERATOR"); // read "."
-            proc_E();
-           
+            } while (nextToken.getType() == "IDENTIFIER" || nextToken.getVal() == "(");
+            read(".", "OPERATOR");
+            procedure_E();
+
             build_tree("lambda", "KEYWORD", n + 1);
         }
+        // E -> Ew
         else
         {
-            proc_Ew();
+            procedure_Ew();
         }
     }
 
-    void proc_Ew()
+    // Ew ->  T ’where’ Dr | T
+    void procedure_Ew()
     {
-        proc_T();
+        procedure_T();
 
-        if (nt.getVal() == "where")
+        if (nextToken.getVal() == "where") // If next token is 'where', then rule is, Ew ->  T ’where’ Dr | T
         {
             read("where", "KEYWORD");
-            proc_Dr();
+            procedure_Dr();
             build_tree("where", "KEYWORD", 2);
         }
-
     }
 
-    void proc_T()
+    // T -> Ta ( ’,’ Ta )+ | Ta
+    void procedure_T()
     {
-        proc_Ta();
+        procedure_Ta();
 
         int n = 1;
-        while (nt.getVal() == ",")
+        while (nextToken.getVal() == ",") // Iterate and read ","; Rule is T -> Ta ( ’,’ Ta )+
         {
             n++;
             read(",", "PUNCTION");
-            proc_Ta();
+            procedure_Ta();
         }
         if (n > 1)
         {
@@ -1875,286 +1879,353 @@ public:
         }
     }
 
-    void proc_Ta()
+    // Ta -> Ta ’aug’ Tc | Tc
+    void procedure_Ta()
     {
-        proc_Tc();
+        procedure_Tc();
 
-        while (nt.getVal() == "aug")
+        while (nextToken.getVal() == "aug") // If next token is 'aug', then rule is, Ta -> Ta ’aug’ Tc
         {
             read("aug", "KEYWORD");
-            proc_Tc();
+            procedure_Tc();
             build_tree("aug", "KEYWORD", 2);
         }
     }
 
-    void proc_Tc()
+    // Tc -> B ’->’ Tc ’|’ Tc | B
+    void procedure_Tc()
     {
-        proc_B();
-        if (nt.getVal() == "->")
+        procedure_B();
+
+        if (nextToken.getVal() == "->") // If next token is '->', then rule is, Tc -> B ’->’ Tc ’|’ Tc
         {
             read("->", "OPERATOR");
-            proc_Tc();
-            read("|", "OPERATOR"); // read "|"
-            proc_Tc();
+            procedure_Tc();
+            read("|", "OPERATOR");
+            procedure_Tc();
             build_tree("->", "KEYWORD", 3);
         }
     }
 
-    void proc_B()
+    // B -> B ’or’ Bt | Bt
+    void procedure_B()
     {
-        proc_Bt();
-        while (nt.getVal() == "or")
+        procedure_Bt();
+        while (nextToken.getVal() == "or") // If next token is 'or', then rule is, B -> B ’or’ Bt
         {
             read("or", "KEYWORD");
-            proc_Bt();
+            procedure_Bt();
             build_tree("or", "KEYWORD", 2);
         }
     }
 
-    void proc_Bt()
+    // Bt -> Bt ’&’ Bs | Bs
+    void procedure_Bt()
     {
-        proc_Bs();
-        while (nt.getVal() == "&")
+        procedure_Bs();
+        while (nextToken.getVal() == "&") // If next token is '&', then rule is, Bt -> Bt ’&’ Bs
         {
             read("&", "OPERATOR");
-            proc_Bs();
+            procedure_Bs();
             build_tree("&", "KEYWORD", 2);
         }
     }
 
-    void proc_Bs()
+    // Bs -> ’not’ Bp | Bp
+    void procedure_Bs()
     {
-
-        if (nt.getVal() == "not")
+        if (nextToken.getVal() == "not") // If next token is 'not', then rule is, Bs -> ’not’ Bp
         {
             read("not", "KEYWORD");
-            proc_Bp();
+            procedure_Bp();
             build_tree("not", "KEYWORD", 1);
         }
-        else
+        else // Else the rule is, Bs -> Bp
         {
-            proc_Bp();
+            procedure_Bp();
         }
     }
 
-    void proc_Bp()
+    /*
+    Bp  -> A (’gr’ | ’>’ )
+        -> A (’ge’ | ’>=’)
+        -> A (’ls’ | ’<’ )
+        -> A (’le’ | ’<=’)
+        -> A ’eq’ A
+        -> A ’ne’ A
+        -> A ;
+    */
+    void procedure_Bp()
     {
-        proc_A();
-        string temp = nt.getVal();
-        string temp2 = nt.getType();
+        procedure_A();
+        string temp = nextToken.getVal();
+        string temp2 = nextToken.getType();
 
-        if (nt.getVal() == "gr" || nt.getVal() == ">")
+        if (nextToken.getVal() == "gr" || nextToken.getVal() == ">") // Bp -> A (’gr’ | ’>’ )
         {
             read(temp, temp2);
-            proc_A();
+            procedure_A();
             build_tree("gr", "KEYWORD", 2);
         }
-        else if (nt.getVal() == "ge" || nt.getVal() == ">=")
+        else if (nextToken.getVal() == "ge" || nextToken.getVal() == ">=") // Bp -> A (’ge’ | ’>=’)
         {
             read(temp, temp2);
-            proc_A();
+            procedure_A();
             build_tree("ge", "KEYWORD", 2);
         }
-        else if (nt.getVal() == "ls" || nt.getVal() == "<")
+        else if (nextToken.getVal() == "ls" || nextToken.getVal() == "<") // Bp -> A (’ls’ | ’<’ )
         {
             read(temp, temp2);
-            proc_A();
+            procedure_A();
             build_tree("ls", "KEYWORD", 2);
         }
-        else if (nt.getVal() == "le" || nt.getVal() == "<=")
+        else if (nextToken.getVal() == "le" || nextToken.getVal() == "<=") // Bp -> A (’le’ | ’<=’)
         {
             read(temp, temp2);
-            proc_A();
+            procedure_A();
             build_tree("le", "KEYWORD", 2);
         }
-        else if (nt.getVal() == "eq")
+        else if (nextToken.getVal() == "eq") // Bp -> A ’eq’ A
         {
             read(temp, temp2);
-            proc_A();
+            procedure_A();
             build_tree("eq", "KEYWORD", 2);
         }
-        else if (nt.getVal() == "ne")
+        else if (nextToken.getVal() == "ne") // Bp -> A ’ne’ A
         {
             read(temp, temp2);
-            proc_A();
+            procedure_A();
             build_tree("ne", "KEYWORD", 2);
         }
     }
 
-    void proc_A()
+    /*
+    A   -> A ’+’ At
+        -> A ’-’ At
+        -> ’+’ At
+        -> ’-’ At
+        -> At ;
+    */
+    void procedure_A()
     {
-        if (nt.getVal() == "-")
-        {
-            read("-", "OPERATOR");
-            proc_At();
-            build_tree("neg", "KEYWORD", 1);
-        }
-        else if (nt.getVal() == "+")
+        if (nextToken.getVal() == "+") // A -> ’+’ At
         {
             read("+", "OPERATOR");
-            proc_At();
+            procedure_At();
+        }
+        else if (nextToken.getVal() == "-") // A -> ’-’ At
+        {
+            read("-", "OPERATOR");
+            procedure_At();
+            build_tree("neg", "KEYWORD", 1);
         }
         else
         {
-            proc_At();
+            procedure_At();
         }
 
-        while (nt.getVal() == "+" || nt.getVal() == "-")
+        // A   -> A ’+’ At | A ’-’ At
+        while (nextToken.getVal() == "+" || nextToken.getVal() == "-")
         {
-            string temp = nt.getVal();
+            string temp = nextToken.getVal();
             read(temp, "OPERATOR");
-            proc_At();
+            procedure_At();
             build_tree(temp, "OPERATOR", 2);
         }
     }
 
-    void proc_At()
+    /*
+    At  -> At ’*’ Af
+        -> At ’/’  Af
+        -> Af ;
+    */
+    void procedure_At()
     {
+        procedure_Af(); // At -> Af
 
-        proc_Af();
-        while (nt.getVal() == "*" || nt.getVal() == "/")
+        while (nextToken.getVal() == "*" || nextToken.getVal() == "/") // At -> At ’*’ Af | At ’/’  Af
         {
-            string temp = nt.getVal();
+            string temp = nextToken.getVal();
             read(temp, "OPERATOR");
-            proc_Af();
+            procedure_Af();
             build_tree(temp, "OPERATOR", 2);
         }
     }
 
-    void proc_Af()
+    /*
+    Af -> Ap ’**’ Af
+       -> Ap ;
+    */
+    void procedure_Af()
     {
-        proc_Ap();
+        procedure_Ap();
 
-        if (nt.getVal() == "**")
+        if (nextToken.getVal() == "**") // Af -> Ap ’**’ Af
         {
             read("**", "OPERATOR");
-            proc_Af();
+            procedure_Af();
             build_tree("**", "KEYWORD", 2);
         }
     }
 
-    void proc_Ap()
+    /*
+    Ap -> Ap ’@’ ’<IDENTIFIERENTIFIER>’ R
+       -> R ;
+    */
+    void procedure_Ap()
     {
-        proc_R();
-        while (nt.getVal() == "@")
+        procedure_R();
+        while (nextToken.getVal() == "@")
         {
-            read("@", "OPERATOR"); // read a type ID
-            if (nt.getType() != "ID")
+            read("@", "OPERATOR"); // read a type IDENTIFIER
+            if (nextToken.getType() != "IDENTIFIER")
             {
                 cout << " unexpected token ";
             }
             else
             {
-                read(nt.getVal(), "ID");
-                proc_R();
+                read(nextToken.getVal(), "IDENTIFIER");
+                procedure_R();
                 build_tree("@", "KEYWORD", 3);
             }
         }
     }
 
-    void proc_R()
+    /*
+    R -> R Rn
+      -> Rn ;
+    */
+    void procedure_R()
     {
-        proc_Rn();
-        while (nt.getType() == "ID" || nt.getType() == "INT" || nt.getType() == "STR" || nt.getVal() == "true" || nt.getVal() == "false" || nt.getVal() == "dummy" || nt.getVal() == "nil" || nt.getVal() == "(")
+        procedure_Rn();
+        while (nextToken.getType() == "IDENTIFIER" || nextToken.getType() == "INTEGER" || nextToken.getType() == "STRING" || nextToken.getVal() == "true" || nextToken.getVal() == "false" || nextToken.getVal() == "nil" || nextToken.getVal() == "(" || nextToken.getVal() == "dummy")
         {
-            proc_Rn();
-            build_tree("gamma", "KEYWORD", 2); 
+            procedure_Rn();
+            build_tree("gamma", "KEYWORD", 2);
         }
     }
 
-    void proc_Rn()
+    /*
+    Rn -> ’<IDENTIFIER>’
+        -> ’<INTEGER>’
+        -> ’<STRING>’
+        -> ’true’
+        -> ’false’
+        -> ’nil’
+        -> ’(’ E ’)’
+        -> ’dummy’
+    */
+    void procedure_Rn()
     {
-        if (nt.getType() == "ID" || nt.getType() == "INT" || nt.getType() == "STR")
+        if (nextToken.getType() == "IDENTIFIER" || nextToken.getType() == "INTEGER" || nextToken.getType() == "STRING") // Rn -> ’<IDENTIFIER>’ | ’<INTEGER>’ | ’<STRING>’
         {
-            read(nt.getVal(), nt.getType());
+            read(nextToken.getVal(), nextToken.getType());
         }
-        else if (nt.getVal() == "true")
+        else if (nextToken.getVal() == "true") // Rn -> ’true’
         {
             read("true", "KEYWORD");
             build_tree("true", "BOOL", 0);
         }
-        else if (nt.getVal() == "false")
+        else if (nextToken.getVal() == "false") // Rn -> ’false’
         {
             read("false", "KEYWORD");
             build_tree("false", "BOOL", 0);
         }
-        else if (nt.getVal() == "nil")
+        else if (nextToken.getVal() == "nil") // Rn -> ’nil’
         {
             read("nil", "KEYWORD");
             build_tree("nil", "NIL", 0);
         }
-        else if (nt.getVal() == "(")
+        else if (nextToken.getVal() == "(") // Rn -> ’(’ E ’)’
         {
             read("(", "PUNCTION");
-            proc_E();
+            procedure_E();
             read(")", "PUNCTION");
         }
-        else if (nt.getVal() == "dummy")
+        else if (nextToken.getVal() == "dummy") // Rn -> ’dummy’
         {
             read("dummy", "KEYWORD");
             build_tree("dummy", "DUMMY", 0);
         }
     }
 
-    void proc_D()
+    /*
+    D -> Da ’within’ D => ’within’
+      -> Da ;
+    */
+    void procedure_D()
     {
-        proc_Da();
-        if (nt.getVal() == "within")
+        procedure_Da();
+        if (nextToken.getVal() == "within")
         {
             read("within", "KEYWORD");
-            proc_Da();
+            procedure_Da();
             build_tree("within", "KEYWORD", 2);
         }
     }
 
-    void proc_Da()
+    /*
+    Da -> Dr ( ’and’ Dr )+ 
+       -> Dr ;
+    */
+    void procedure_Da()
     {
-        proc_Dr();
+        procedure_Dr();
+
         int n = 1;
-        while (nt.getVal() == "and")
+        while (nextToken.getVal() == "and")
         {
             n++;
             read("and", "KEYWORD");
-            proc_Dr();
+            procedure_Dr();
         }
         if (n > 1)
         {
             build_tree("and", "KEYWORD", n);
         }
     }
-
-    void proc_Dr()
+    
+    /*
+    Dr -> ’rec’ Db 
+        -> Db ;
+    */
+    void procedure_Dr()
     {
-        if (nt.getVal() == "rec")
+        if (nextToken.getVal() == "rec")
         {
             read("rec", "KEYWORD");
-            proc_Db();
+            procedure_Db();
             build_tree("rec", "KEYWORD", 1);
         }
         else
         {
-            proc_Db();
+            procedure_Db();
         }
     }
 
-    void proc_Db()
-    { 
-        if (nt.getVal() == "(")
+    /*
+   Db -> Vl ’=’ E => ’=’
+      -> ’<IDENTIFIER>’ Vb+ ’=’ E => ’fcn_form’
+      -> ’(’ D ’)’ ;
+    */
+    void procedure_Db()
+    {
+        if (nextToken.getVal() == "(")
         {
             read("(", "PUNCTION");
-            proc_D();
+            procedure_D();
             read(")", "PUNCTION");
         }
-        else if (nt.getType() == "ID")
+        else if (nextToken.getType() == "IDENTIFIER")
         {
-            read(nt.getVal(), "ID");
+            read(nextToken.getVal(), "IDENTIFIER");
             int n = 1;
-            if (nt.getVal() == "=" || nt.getVal() == ",")
-            { 
-                while (nt.getVal() == ",")
+            if (nextToken.getVal() == "=" || nextToken.getVal() == ",")
+            {
+                while (nextToken.getVal() == ",")
                 {
                     read(",", "PUNCTION");
-                    read(nt.getVal(), "ID");
+                    read(nextToken.getVal(), "IDENTIFIER");
                     n++;
                 }
                 if (n > 1)
@@ -2162,54 +2233,62 @@ public:
                     build_tree(",", "KEYWORD", n);
                 }
                 read("=", "OPERATOR");
-                proc_E();
+                procedure_E();
                 build_tree("=", "KEYWORD", 2);
             }
             else
             {
                 do
                 {
-                    proc_Vb();
+                    procedure_Vb();
                     n++;
-                } while (nt.getType() == "ID" || nt.getVal() == "(");
-                read("=", "OPERATOR"); 
-                proc_E();
+                } while (nextToken.getType() == "IDENTIFIER" || nextToken.getVal() == "(");
+                read("=", "OPERATOR");
+                procedure_E();
                 build_tree("function_form", "KEYWORD", n + 1);
             }
         }
     }
 
-    void proc_Vb()
+    /*
+    Vb -> ’<IDENTIFIER>’
+        -> ’(’ Vl ’)’
+        -> ’(’ ’)’
+    */
+    void procedure_Vb()
     {
-        if (nt.getType() == "ID")
+        if (nextToken.getType() == "IDENTIFIER")
         {
-            read(nt.getVal(), "ID");
+            read(nextToken.getVal(), "IDENTIFIER");
         }
-        else if (nt.getVal() == "(")
+        else if (nextToken.getVal() == "(")
         {
             read("(", "PUNCTION");
-            if (nt.getVal() == ")")
+            if (nextToken.getVal() == ")")
             {
                 read(")", "PUNCTION");
                 build_tree("()", "KEYWORD", 0);
             }
             else
             {
-                proc_Vl();
-                read(")", "PUNCTION"); 
+                procedure_Vl();
+                read(")", "PUNCTION");
             }
         }
     }
 
-    void proc_Vl()
+    /*
+    Vl -> ’<IDENTIFIER>’ list ’,’
+    */
+    void procedure_Vl()
     {
         int n = 1;
-        read(nt.getVal(), "ID");
+        read(nextToken.getVal(), "IDENTIFIER");
 
-        while (nt.getVal() == ",")
+        while (nextToken.getVal() == ",")
         {
             read(",", "PUNCTION");
-            read(nt.getVal(), "ID");
+            read(nextToken.getVal(), "IDENTIFIER");
             n++;
         }
         if (n > 1)
