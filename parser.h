@@ -173,22 +173,26 @@ public:
     {
         token t;
         int i = index; // Index of character
-        string id = "";
-        string num = "";
-        string isop = "";
-        string isString = "";
-        string isPun = "";
-        string isComment = "";
-        string isSpace = "";
+        string id = ""; // Identifier
+        string num = ""; // Number
+        string isop = ""; // Operator
+        string isString = ""; // String
+        string isPun = ""; // Punctuation
+        string isComment = ""; // Comment
+        string isSpace = ""; // Space
 
+        // Check if end of file is reached
         if (read[i] == '\0' || i == sizeOfFile)
         {
             t.setType("EOF");
             t.setVal("EOF");
             return t;
         }
+
+        // Read the next token
         while (i < sizeOfFile || i < 10000 || read[i] != '\0')
         {
+            // Check if character is a digit
             if (isDigit(read[i]))
             {
                 while (isDigit(read[i]))
@@ -201,6 +205,7 @@ public:
                 t.setType("INT");
                 return t;
             }
+            // Check if character is an alphabet letter
             else if (isAlpha(read[i]))
             {
                 while (isAlpha(read[i]) || isDigit(read[i]) || read[i] == '_')
@@ -224,6 +229,7 @@ public:
                     return t;
                 }
             }
+            // Check if character is a comment
             else if (read[i] == '/' && read[i + 1] == '/')
             {
                 while (read[i] == '\'' || read[i] == '\\' || read[i] == '(' || read[i] == ')' || read[i] == ';' || read[i] == ',' || read[i] == ' ' || read[i] == '\t' || isAlpha(read[i]) || isDigit(read[i]) || isOperator(read[i]))
@@ -246,6 +252,7 @@ public:
                 t.setType("DELETE");
                 return t;
             }
+            // Check if character is an operator
             else if (isOperator(read[i]))
             {
                 while (isOperator(read[i]))
@@ -259,6 +266,7 @@ public:
                 t.setType("OPERATOR");
                 return t;
             }
+
             else if (read[i] == '\'')
             {
                 isString = isString + read[i];
@@ -320,7 +328,8 @@ public:
             }
             else
             {
-                string temp = temp + read[i];
+                string temp = "";
+                temp = temp + read[i];
                 t.setVal(temp);
                 t.setType("UNKNOWN");
                 i++;
@@ -328,9 +337,12 @@ public:
                 return t;
             }
         }
+
+        return t;
     }
 
-    void start_parsing()
+    // Start parsing
+    void parse()
     {
         nt = getToken(readnew);
         while (nt.getType() == "DELETE")
@@ -351,7 +363,7 @@ public:
 
             if (astFlag == 1)
             {
-                t->print_my_tree(0);
+                t->print_tree(0);
             }
 
             makeST(t);
@@ -2066,7 +2078,7 @@ public:
 
             //}
             // cout << " printing rec tree" << endl;
-            // t->print_my_tree(0) ;
+            // t->print_tree(0) ;
         }
         else if (t->getVal() == "function_form")
         {
@@ -2083,28 +2095,21 @@ public:
             tree *temp = t;
             while (V->right->right != NULL)
             {
-                // cout << " here 1 " << V->getVal() << endl;
                 temp->left->right = createNode("lambda", "KEYWORD");
                 temp = temp->left->right;
                 temp->left = createNode(V);
-                // temp = temp->left->right;
                 V = V->right;
             }
 
             temp->left->right = createNode("lambda", "KEYWORD");
             temp = temp->left->right;
-            // cout << " lambda " << temp->getVal() << endl ;
-            // cout << " V " << V->getVal() << endl;
-            // cout << " V->right " << V->right->getVal() << endl;
 
-            // if(V->right == NULL){
             temp->left = createNode(V);
             temp->left->right = V->right;
-            //}
+          
         }
         else if (t->getVal() == "lambda")
         {
-            // cout << "HELLOOOOOO LAMBDA" << endl;
             if (t->left != NULL)
             {
                 tree *V = t->left;
@@ -2173,10 +2178,7 @@ public:
             t->left->left->right = E1;
         }
 
-        // tree *temp = st.top();
-        // cout << " tree printed now " << endl;
-        // temp->print_my_tree(0);
-        // cout << endl;
+        return NULL;
     }
 
     void proc_E()

@@ -48,7 +48,7 @@ int main(int argc, const char **argv)
 
         // Create parser object and start parsing
         parser rpal_parser(file_array, 0, file_str.size(), ast_flag);
-        rpal_parser.start_parsing();
+        rpal_parser.parse();
     }
     else
         cout << " Error : Incorrect no. of inputs " << endl;

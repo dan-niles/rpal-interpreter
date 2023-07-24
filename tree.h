@@ -5,44 +5,50 @@
 
 using namespace std;
 
+// Class for syntax tree
 class tree
 {
 private:
-	string val;
-	string type;
+	string val;	 // Value of node
+	string type; // Type of node
 
 public:
-	tree *left;
-	tree *right;
-	void print_my_tree(int dots);
-	void setVal(string value);
-	void setType(string typ);
-	string getVal();
-	string getType();
-	tree *createNode(string value, string typ);
-	tree *createNode(tree *x);
+	tree *left;									// Left child
+	tree *right;								// Right child
+	void print_tree(int dots);					// Print tree
+	void setVal(string value);					// Set value of node
+	void setType(string typ);					// Set type of node
+	string getVal();							// Get value of node
+	string getType();							// Get type of node
+	tree *createNode(string value, string typ); // Create node
+	tree *createNode(tree *x);					// Create node
 };
 
+// Set value of node
 void tree::setVal(string value)
 {
 	val = value;
 }
 
+// Set type of node
 void tree::setType(string typ)
 {
 	type = typ;
 }
 
+// Get value of node
 string tree::getVal()
 {
 	return val;
 }
 
+// Get type of node
 string tree::getType()
 {
 	return type;
 }
 
+// Create node with value and type
 tree *createNode(string value, string typ)
 {
 	tree *temp = new tree();
@@ -53,6 +59,7 @@ tree *createNode(string value, string typ)
 	return temp;
 }
 
+// Create node with tree object
 tree *createNode(tree *x)
 {
 	tree *temp = new tree();
@@ -63,7 +70,8 @@ tree *createNode(tree *x)
 	return temp;
 }
 
-void tree::print_my_tree(int dots)
+// Print abstact syntax tree
+void tree::print_tree(int dots)
 {
 	int n = 0;
 	while (n < dots)
@@ -71,42 +79,32 @@ void tree::print_my_tree(int dots)
 		cout << ".";
 		n++;
 	}
-	// cout << val << " and " << type << endl;
+
 	if (type == "ID" || type == "STR" || type == "INT")
 	{
-		// val = "<" + type + ":"+ val+ ">";
-		// cout << "<" << type << ":" << val << ">";
 		cout << "<";
 		cout << type;
 		cout << ":";
 	}
+
 	if (type == "BOOL" || type == "NIL" || type == "DUMMY")
-	{
 		cout << "<";
-	}
 
 	cout << val;
 
 	if (type == "ID" || type == "STR" || type == "INT")
-	{
 		cout << ">";
-	}
 
 	if (type == "BOOL" || type == "NIL" || type == "DUMMY")
-	{
 		cout << ">";
-	}
 
 	cout << endl;
 
 	if (left != NULL)
-	{
-		left->print_my_tree(dots + 1);
-	}
+		left->print_tree(dots + 1);
+
 	if (right != NULL)
-	{
-		right->print_my_tree(dots);
-	}
+		right->print_tree(dots);
 }
 
 #endif

@@ -1,0 +1,6 @@
+let rec FibRange(lower, upper) =
+    upper le lower -> (nil aug Fib(upper))
+    | (FibRange(lower, upper-1) aug Fib(upper))
+where rec Fib(N) = (N eq 0) or (N eq 1) -> N | Fib(N-2) + Fib(N-1) 
+in
+    Print( FibRange(0,100) )
