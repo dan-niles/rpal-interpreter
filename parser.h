@@ -344,19 +344,19 @@ public:
     // Start parsing
     void parse()
     {
-        nt = getToken(readnew);
-        while (nt.getType() == "DELETE")
+        nt = getToken(readnew); // Get the first token
+        while (nt.getType() == "DELETE") // Ignore all DELETE tokens
         {
             nt = getToken(readnew);
         }
 
-        proc_E();
+        proc_E(); // Start parsing from E
 
         while (nt.getType() == "DELETE")
         {
             nt = getToken(readnew);
         }
-
+        
         if (index >= sizeOfFile - 1)
         {
             tree *t = st.top();
@@ -2183,22 +2183,14 @@ public:
 
     void proc_E()
     {
-        // cout << " enter E" << " with token " << nt.getVal() << " token type " << nt.getType() << " and size " << st.size() <<endl;
-        // cout << "in E with size " << st.size() << endl;
-        // token temp;
         if (nt.getVal() == "let")
         {
-            //		cout << " token " << nt.getVal() << endl;
             read("let", "KEYWORD");
             proc_D();
-            //	cout << " back to E with token here " << nt.getVal() << " and type " << nt.getVal() << " to read in " << " with size " << st.size() << endl;
-            // token temp;
-            // temp.setVal("in");
-            // temp.setType("KEYWORD");
+
             read("in", "KEYWORD"); // read in
             proc_E();
-            //	cout << " back to E with token dsfsdg " << nt.getVal() << " and type " << nt.getVal() << " to read in " << " with size " << st.size() << endl;
-
+        
             build_tree("let", "KEYWORD", 2);
         }
         else if (nt.getVal() == "fn")
@@ -2212,74 +2204,60 @@ public:
             } while (nt.getType() == "ID" || nt.getVal() == "(");
             read(".", "OPERATOR"); // read "."
             proc_E();
-            //	cout << " back to E with token 33444 " << nt.getVal() << " and type " << nt.getVal() << " to read in " << " with size " << st.size() << endl;
+           
             build_tree("lambda", "KEYWORD", n + 1);
         }
         else
         {
             proc_Ew();
-            //	cout << " back to E from Ew " << nt.getVal() << " and type " << nt.getType() << endl;
         }
-        // cout << " Exit E" << " with token " << nt.getVal() << " and type " << nt.getType() << " and size " << st.size() <<endl;
     }
 
     void proc_Ew()
     {
-        // cout << " inside EW" << endl;
-        // cout << " Enter Ew with token " << nt.getVal() << " with type " << nt.getType() << " with size " << st.size() << endl;
         proc_T();
-        // cout << " back to Ew with token " << nt.getVal()<< " stack size " <<  st.size() << endl;
+
         if (nt.getVal() == "where")
         {
             read("where", "KEYWORD");
             proc_Dr();
             build_tree("where", "KEYWORD", 2);
         }
-        //	cout << " Exit Ew with token " << nt.getVal() << " with type " << nt.getType() << " with size " << st.size() << endl;
+
     }
 
     void proc_T()
     {
-        // cout << "in T with size " << st.size() << endl;
-        // cout << " Enter T" << " with token "<< nt.getVal() << " end type " << nt.getType() <<  " and size " << st.size() << endl;
         proc_Ta();
-        // cout << " back to t with " << nt.getVal() << " and type " << nt.getType() << " with size "<< st.size() << endl;
+
         int n = 1;
         while (nt.getVal() == ",")
         {
             n++;
             read(",", "PUNCTION");
             proc_Ta();
-            //	cout << " back to t in the while " << nt.getVal() << " and type " << nt.getType() << endl;
         }
         if (n > 1)
         {
             build_tree("tau", "KEYWORD", n);
         }
-        // cout << " Exit T" << " with token "<< nt.getVal() << " end type " << nt.getType() <<  " and size " << st.size() << endl;
     }
 
     void proc_Ta()
     {
-        // cout << " Enter Ta with token " << nt.getVal() <<  " and type " << nt.getType() << " and stack size " << st.size() << endl;
-        // cout << "in Ta with size " << st.size() << endl;
         proc_Tc();
-        // cout << " back to tA with token " << nt.getVal() << " and type " << nt.getType() << " with stack size "<<st.size() <<endl;
+
         while (nt.getVal() == "aug")
         {
             read("aug", "KEYWORD");
             proc_Tc();
             build_tree("aug", "KEYWORD", 2);
         }
-        // cout << " Exit Ta with token " << nt.getVal() <<  " and type " << nt.getType() << " and stack size " << st.size() << endl;
     }
 
     void proc_Tc()
     {
-        // cout << " inside Tc " << endl;
-        // cout << " Enter Tc with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() << endl;
         proc_B();
-        // cout << " back to Tc with token " << nt.getVal() <<  " and type " << nt.getType() << " with size " << st.size() << endl;
         if (nt.getVal() == "->")
         {
             read("->", "OPERATOR");
@@ -2288,7 +2266,6 @@ public:
             proc_Tc();
             build_tree("->", "KEYWORD", 3);
         }
-        // cout << " Exit Tc with token " << nt.getVal() << " and type " << nt.getType() << " with size " << st.size() << endl;
     }
 
     void proc_B()
