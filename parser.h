@@ -518,7 +518,7 @@ public:
                             if (boundValues.at(i)->getVal() == "tau")
                             {
                                 stack<tree *> res;
-                                printTuple(boundValues.at(i), res);
+                                arrangeTuple(boundValues.at(i), res);
                             }
 
                             vector<tree *> nodeValVector;
@@ -729,7 +729,7 @@ public:
                         tree *getTau = m_stack.top();
 
                         stack<tree *> res;
-                        printTuple(getTau, res);
+                        arrangeTuple(getTau, res);
                         stack<tree *> getRev;
                         while (!res.empty())
                         {
@@ -1048,7 +1048,7 @@ public:
                                         if (temp.at(i)->getVal() == "tau")
                                         {
                                             stack<tree *> res;
-                                            printTuple(temp.at(i), res);
+                                            arrangeTuple(temp.at(i), res);
                                         }
                                         m_stack.push(temp.at(i));
                                     }
@@ -1067,7 +1067,7 @@ public:
                 if (flag == 0)
                     return;
             }
-            // If a binary or unary operator is on top of the control stack
+            // If a binary or unary operator is on top of the control stack (CSE Rule 6 and CSE Rule 7)
             else if (isBinaryOperator(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not") 
             {
                 string op = nextToken->getVal(); // Get the operator
@@ -1271,90 +1271,94 @@ public:
                     }
                 }
             }
-            // If beta is on top of control stack
+            // If beta is on top of control stack (CSE Rule 8)
             else if (nextToken->getVal() == "beta")
             {
-                tree *truthVal = m_stack.top();
+                tree *boolVal = m_stack.top(); // Get the boolean value from stack
                 m_stack.pop();
-                tree *elseIndex = control.top();
-                control.pop();
-                tree *thenIndex = control.top();
+
+                tree *elseIndex = control.top(); // Get the index of the else statement
                 control.pop();
 
-                int index;
-                if (truthVal->getVal() == "true")
+                tree *thenIndex = control.top(); // Get the index of the then statement
+                control.pop();
+
+                int index; 
+                if (boolVal->getVal() == "true") // If the boolean value is true, then go to the then statement
                 {
                     istringstream is1(thenIndex->getVal());
                     is1 >> index;
                 }
-                else
+                else // If the boolean value is false, then go to the else statement
                 {
                     istringstream is1(elseIndex->getVal());
                     is1 >> index;
                 }
-                vector<tree *> nextDelta = controlStructure.at(index);
-                for (int i = 0; i < nextDelta.size(); i++)
-                {
+
+                vector<tree *> nextDelta = controlStructure.at(index); // Get the next control structure from index
+                for (int i = 0; i < nextDelta.size(); i++) // Push each element of the next control structure to the control stack
                     control.push(nextDelta.at(i));
-                }
+                
             }
+            // If tau is on top of control stack (CSE Rule 9)
             else if (nextToken->getVal() == "tau")
             {
-                tree *myTuple = createNode("tau", "tau");
+                tree *tupleNode = createNode("tau", "tau");
 
-                tree *noOfChild = control.top(); // behind tua is the no of kids of tau
+                tree *noOfItems = control.top(); // Get the number of items in the tuple
                 control.pop();
 
                 int numOfItems;
 
-                istringstream is1(noOfChild->getVal());
-                is1 >> numOfItems;
+                istringstream is1(noOfItems->getVal());
+                is1 >> numOfItems; // Convert the number of items to an integer
 
-                if (m_stack.top()->getVal() == "lambda")
+                if (m_stack.top()->getVal() == "lambda") // If the first item is a lambda token
                 {
-                    tree *lamda = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // popped lambda
+                    tree *lamda = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop lambda
                     m_stack.pop();
 
-                    tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                    tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the environment in which it was created
                     m_stack.pop(); // popped the evn in which it was created
 
-                    tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                    tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the variable bounded to lambda
                     m_stack.pop(); // bound variable of lambda
 
-                    tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                    tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the index of next control structure
                     m_stack.pop(); // next delta to be opened
-
-                    tree *myLambda = createNode("lamdaTuple", "lamdaTuple");
-                    myLambda->left = nextDeltaIndex;
+                    
+                    // Create a lambda tuple and set parameters
+                    tree *myLambda = createNode("lamdaTuple", "lamdaTuple"); 
+                    myLambda->left = nextDeltaIndex; 
                     nextDeltaIndex->right = boundVar;
                     boundVar->right = prevEnv;
                     prevEnv->right = lamda;
-                    myTuple->left = myLambda;
+                    tupleNode->left = myLambda;
                 }
                 else
                 {
-                    myTuple->left = createNode(m_stack.top()); // removing right link
+                    tupleNode->left = createNode(m_stack.top());
                     m_stack.pop();
                 }
 
-                tree *sibling = myTuple->left;
+                tree *sibling = tupleNode->left; // Get the first item in the tuple
 
-                for (int i = 1; i < numOfItems; i++)
+                for (int i = 1; i < numOfItems; i++) // For each item in the tuple
                 {
-                    tree *temp = m_stack.top();
-                    if (temp->getVal() == "lambda")
+                    tree *temp = m_stack.top(); // Get the next item in the stack
+                    if (temp->getVal() == "lambda") // If the next item is a lambda token
                     {
-                        tree *lamda = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // popped lambda
+                        tree *lamda = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop lambda
                         m_stack.pop();
 
-                        tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
-                        m_stack.pop(); // popped the evn in which it was created
+                        tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the environment in which it was created
+                        m_stack.pop(); 
 
-                        tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
-                        m_stack.pop(); // bound variable of lambda
+                        tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the variable bounded to lambda
+                        m_stack.pop(); 
 
-                        tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
-                        m_stack.pop(); // next delta to be opened
+                        tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType());   // Pop the index of next control structure
+                        m_stack.pop(); 
 
                         tree *myLambda = createNode("lamdaTuple", "lamdaTuple");
 
@@ -1365,65 +1369,68 @@ public:
                         sibling->right = myLambda;
                         sibling = sibling->right;
                     }
-                    else
+                    else // If the next item is not a lambda token
                     {
                         m_stack.pop();
                         sibling->right = temp;
                         sibling = sibling->right;
                     }
                 }
-                m_stack.push(myTuple);
+                m_stack.push(tupleNode); // Push the tuple to the stack
             }
+            // If aug is on top of control stack
             else if (nextToken->getVal() == "aug")
             {
-                tree *tokenOne = createNode(m_stack.top());
+                tree *token1 = createNode(m_stack.top()); // Get the first item in the stack
                 m_stack.pop();
-                tree *tokenTwo = createNode(m_stack.top());
+
+                tree *token2 = createNode(m_stack.top()); // Get the second item in the stack
                 m_stack.pop();
-                if (tokenOne->getVal() == "nil" && tokenTwo->getVal() == "nil")
+
+                if (token1->getVal() == "nil" && token2->getVal() == "nil") // If both tokens are nil
                 {
-                    tree *myNilTuple = createNode("tau", "tau");
-                    myNilTuple->left = tokenOne;
-                    m_stack.push(myNilTuple);
+                    tree *tupleNode = createNode("tau", "tau");
+                    tupleNode->left = token1;
+                    m_stack.push(tupleNode);
                 }
-                else if (tokenOne->getVal() == "nil")
+                else if (token1->getVal() == "nil") // If the first token is nil
                 {
-                    tree *myNilTuple = createNode("tau", "tau");
-                    myNilTuple->left = tokenTwo;
-                    m_stack.push(myNilTuple);
+                    tree *tupleNode = createNode("tau", "tau");
+                    tupleNode->left = token2;
+                    m_stack.push(tupleNode);
                 }
-                else if (tokenTwo->getVal() == "nil")
+                else if (token2->getVal() == "nil") // If the second token is nil
                 {
-                    tree *myNilTuple = createNode("tau", "tau");
-                    myNilTuple->left = tokenOne;
-                    m_stack.push(myNilTuple);
+                    tree *tupleNode = createNode("tau", "tau");
+                    tupleNode->left = token1;
+                    m_stack.push(tupleNode);
                 }
-                else if (tokenOne->getType() != "tau")
+                else if (token1->getType() != "tau") // If the first token is not a tuple
                 {
-                    tree *myTuple = tokenTwo->left;
-                    while (myTuple->right != NULL)
+                    tree *tupleNode = token2->left;
+                    while (tupleNode->right != NULL)
                     {
-                        myTuple = myTuple->right;
+                        tupleNode = tupleNode->right;
                     }
-                    myTuple->right = createNode(tokenOne);
-                    m_stack.push(tokenTwo);
+                    tupleNode->right = createNode(token1);
+                    m_stack.push(token2);
                 }
-                else if (tokenTwo->getType() != "tau")
+                else if (token2->getType() != "tau") // If the second token is not a tuple
                 {
-                    tree *myTuple = tokenOne->left;
-                    while (myTuple->right != NULL)
+                    tree *tupleNode = token1->left;
+                    while (tupleNode->right != NULL)
                     {
-                        myTuple = myTuple->right;
+                        tupleNode = tupleNode->right;
                     }
-                    myTuple->right = createNode(tokenTwo);
-                    m_stack.push(tokenOne);
+                    tupleNode->right = createNode(token2);
+                    m_stack.push(token1);
                 }
-                else
+                else // If both tokens are tuples
                 {
-                    tree *myNilTuple = createNode("tau", "tau");
-                    myNilTuple->left = tokenOne;
-                    myNilTuple->left->right = tokenTwo;
-                    m_stack.push(myNilTuple);
+                    tree *tupleNode = createNode("tau", "tau");
+                    tupleNode->left = token1;
+                    tupleNode->left->right = token2;
+                    m_stack.push(tupleNode);
                 }
             }
         }
@@ -1431,7 +1438,8 @@ public:
         cout << endl;
     }
 
-    void printTuple(tree *tauNode, stack<tree *> &res)
+    // Arranges nodes in tauNode into a stack
+    void arrangeTuple(tree *tauNode, stack<tree *> &res)
     {
         if (tauNode == NULL)
             return;
@@ -1441,8 +1449,8 @@ public:
         {
             res.push(tauNode);
         }
-        printTuple(tauNode->left, res);
-        printTuple(tauNode->right, res);
+        arrangeTuple(tauNode->left, res);
+        arrangeTuple(tauNode->right, res);
     }
 
     // Adds spaces to the string
