@@ -18,6 +18,8 @@ stack<tree *> st; // Stack for syntax tree
 char operators[] = {'+', '-', '*', '<', '>', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '#', '%',
                     '^', '_', '[', ']', '{', '}', '"', '`', '?'};
 
+string binary_operators[] = {"+", "-", "*", "/", "**", "gr", "ge", "<", "<=", ">", ">=", "ls", "le", "eq", "ne", "&", "or", "><"};
+
 string keys[] = {"let", "fn", "in", "where", "aug", "or", "not", "true", "false", "nil", "dummy", "within",
                  "and", "rec", "gr", "ge", "ls", "le", "eq", "ne"};
 
@@ -85,13 +87,15 @@ public:
     }
 
     // Checks if the given string is a binary operator
-    bool isBiOper(string op)
+    bool isBinaryOperator(string op)
     {
-        if (op == "+" || op == "-" || op == "*" || op == "/" || op == "**" || op == "gr" || op == "ge" || op == "<" || op == "<=" || op == ">" || op == ">=" || op == "ls" || op == "le" || op == "eq" || op == "ne" || op == "&" || op == "or" || op == "><")
+        for (int i = 0; i < 18; i++)
         {
-            return true;
+            if (op == binary_operators[i])
+            {
+                return true;
+            }
         }
-
         return false;
     }
 
@@ -431,7 +435,7 @@ public:
                 nextToken->setType("tau");
             }
 
-            if (nextToken->getType() == "INTEGER" || nextToken->getType() == "STRING" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || nextToken->getVal() == "Conc" || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil" || nextToken->getVal() == "ItoS" /*|| isBiOper(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not"*/)
+            if (nextToken->getType() == "INTEGER" || nextToken->getType() == "STRING" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || nextToken->getVal() == "Conc" || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil")
             {
                 if (nextToken->getVal() == "lambda")
                 {
@@ -453,10 +457,10 @@ public:
                     m_stack.push(nextToken); // Push token to the stack
                 }
             }
-            else if (nextToken->getVal() == "gamma")
+            else if (nextToken->getVal() == "gamma") // If gamma is on top of control stack
             {
                 tree *machineTop = m_stack.top();
-                if (machineTop->getVal() == "lambda") // Check if the next token is lambda
+                if (machineTop->getVal() == "lambda") // CSE Rule 4 (Apply lambda)
                 {
                     m_stack.pop(); // Pop lambda token
 
@@ -615,31 +619,34 @@ public:
                     int deltaIndex;
                     is3 >> deltaIndex;
 
-                    vector<tree *> nextDelta = controlStructure.at(deltaIndex);
+                    vector<tree *> nextDelta = controlStructure.at(deltaIndex); // Get the next control structure
                     for (int i = 0; i < nextDelta.size(); i++)
                     {
-                        control.push(nextDelta.at(i));
+                        control.push(nextDelta.at(i)); // Push each element of the next control structure to the control stack
                     }
                     currEnvIndex++;
                 }
-                else if (machineTop->getVal() == "tau")
+                else if (machineTop->getVal() == "tau") // CSE Rule 10 (Tuple Selection)
                 {
 
-                    tree *tau = m_stack.top(); // saved the tau with kids on left to right;
-                    m_stack.pop();
-                    tree *selectChildNum = m_stack.top();
+                    tree *tau = m_stack.top(); // Get tau node from top of stack
                     m_stack.pop();
 
-                    istringstream is4(selectChildNum->getVal());
-                    int childIndex;
-                    is4 >> childIndex;
+                    tree *selectTupleIndex = m_stack.top(); // Get the index of the child to be selected
+                    m_stack.pop();
+
+                    istringstream is4(selectTupleIndex->getVal());
+                    int tupleIndex;
+                    is4 >> tupleIndex;
+
                     tree *tauLeft = tau->left;
                     tree *selectedChild;
-                    while (childIndex > 1)
+                    while (tupleIndex > 1) // Get the child to be selected
                     {
-                        childIndex--;
+                        tupleIndex--;
                         tauLeft = tauLeft->right;
                     }
+
                     selectedChild = createNode(tauLeft);
                     if (selectedChild->getVal() == "lamdaTuple")
                     {
@@ -655,71 +662,72 @@ public:
                         m_stack.push(selectedChild);
                     }
                 }
-                else if (machineTop->getVal() == "YSTAR")
+                else if (machineTop->getVal() == "YSTAR") // CSE Rule 12 (Applying YStar)
                 {
-                    m_stack.pop(); // pop the YSTAR
+                    m_stack.pop(); // Pop YSTAR token
                     if (m_stack.top()->getVal() == "lambda")
                     {
-                        tree *etaNode = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // getting eta
+                        tree *etaNode = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Create eta node
                         etaNode->setVal("eta");
                         m_stack.pop();
-                        tree *boundEvn1 = m_stack.top(); // getting bound evn
-                        m_stack.pop();
-                        tree *boundVar1 = m_stack.top(); // getting bound var
-                        m_stack.pop();
-                        tree *deltaIndex1 = m_stack.top(); // getting delta index
+
+                        tree *boundEnv1 = m_stack.top(); // Pop bounded environment
                         m_stack.pop();
 
-                        m_stack.push(deltaIndex1); // pushing eta node 1
-                        m_stack.push(boundVar1);   // 2
-                        m_stack.push(boundEvn1);   // 3
-                        m_stack.push(etaNode);     // eta completed 4
+                        tree *boundVar1 = m_stack.top(); // Pop bounded variable
+                        m_stack.pop();
+
+                        tree *deltaIndex1 = m_stack.top(); // Pop index of next control structure
+                        m_stack.pop();
+
+                        // Push the required nodes to the stack
+                        m_stack.push(deltaIndex1);
+                        m_stack.push(boundVar1);
+                        m_stack.push(boundEnv1);
+                        m_stack.push(etaNode);
                     }
                     else
-                        return;
+                        return; // Error
                 }
-                else if (machineTop->getVal() == "eta")
+                else if (machineTop->getVal() == "eta") // CSE Rule 13 (Applying f.p)
                 {
-                    tree *eta = m_stack.top(); // getting eta
-                    m_stack.pop();
-                    tree *boundEvn1 = m_stack.top(); // getting bound evn
-                    m_stack.pop();
-                    tree *boundVar1 = m_stack.top(); // getting bound var
-                    m_stack.pop();
-                    tree *deltaIndex1 = m_stack.top(); // getting delta index
+                    tree *eta = m_stack.top(); // Pop eta node
                     m_stack.pop();
 
-                    m_stack.push(deltaIndex1); // pushing eta node 1
-                    m_stack.push(boundVar1);   // 2
-                    m_stack.push(boundEvn1);   // 3
-                    m_stack.push(eta);         // eta completed 4
+                    tree *boundEnv1 = m_stack.top(); // Pop bounded environment
+                    m_stack.pop();
 
-                    m_stack.push(deltaIndex1);                     // 1
-                    m_stack.push(boundVar1);                       // 2
-                    m_stack.push(boundEvn1);                       // 3
-                    m_stack.push(createNode("lambda", "KEYWORD")); // 4
+                    tree *boundVar1 = m_stack.top(); // Pop bounded variable
+                    m_stack.pop();
+
+                    tree *deltaIndex1 = m_stack.top(); // Pop index of next control structure
+                    m_stack.pop();
+
+                    // Push the eta node back into the stack
+                    m_stack.push(deltaIndex1);
+                    m_stack.push(boundVar1);
+                    m_stack.push(boundEnv1);
+                    m_stack.push(eta);
+
+                    // Push a lambda node with same parameters as the eta node
+                    m_stack.push(deltaIndex1);
+                    m_stack.push(boundVar1);
+                    m_stack.push(boundEnv1);
+                    m_stack.push(createNode("lambda", "KEYWORD"));
+
+                    // Push two gamma nodes onto control stack
                     control.push(createNode("gamma", "KEYWORD"));
                     control.push(createNode("gamma", "KEYWORD"));
                 }
-                else if (machineTop->getVal() == "Print")
+                else if (machineTop->getVal() == "Print") // Print next item on stack
                 {
                     m_stack.pop();
-                    tree *nextToPrint = m_stack.top();
-                    if (nextToPrint->getVal() == "lambda")
-                    {
-                        m_stack.pop();
-                        tree *env = m_stack.top();
-                        m_stack.pop();
-                        tree *boundVar = m_stack.top();
-                        m_stack.pop();
-                        tree *num = m_stack.top();
-                        m_stack.pop();
-                        cout << "[lambda closure: " << boundVar->getVal() << ": " << num->getVal() << "]";
-                        return;
-                    }
-                    else if (nextToPrint->getVal() == "tau")
+                    tree *nextToPrint = m_stack.top(); // Get item to print
+
+                    if (nextToPrint->getVal() == "tau") // If the next item is a tuple
                     {
                         tree *getTau = m_stack.top();
+
                         stack<tree *> res;
                         printTuple(getTau, res);
                         stack<tree *> getRev;
@@ -743,20 +751,37 @@ public:
                             cout << getRev.top()->getVal() << ")";
                         getRev.pop();
                     }
-                    else
+                    else if (nextToPrint->getVal() == "lambda") // If the next item is a lambda token
                     {
+                        m_stack.pop(); // Pop lambda token
 
+                        tree *env = m_stack.top(); // Get the environment in which it was created
+                        m_stack.pop();
+
+                        tree *boundVar = m_stack.top(); // Get the variable bounded to lambda
+                        m_stack.pop();
+
+                        tree *num = m_stack.top(); // Get the index of next control structure to access
+                        m_stack.pop();
+
+                        cout << "[lambda closure: " << boundVar->getVal() << ": " << num->getVal() << "]";
+                        return;
+                    }
+                    else // If the next item is a string or integer
+                    {
                         if (m_stack.top()->getType() == "STRING")
                             cout << addSpaces(m_stack.top()->getVal());
                         else
                             cout << m_stack.top()->getVal();
                     }
                 }
-                else if (machineTop->getVal() == "Isinteger")
+                else if (machineTop->getVal() == "Isinteger") // Check if next item in stack is an integer
                 {
+                    m_stack.pop(); // Pop Isinteger token
+
+                    tree *isNextInt = m_stack.top(); // Get next item in stack
                     m_stack.pop();
-                    tree *isNextInt = m_stack.top();
-                    m_stack.pop();
+
                     if (isNextInt->getType() == "INTEGER")
                     {
                         tree *resNode = createNode("true", "boolean");
@@ -768,11 +793,13 @@ public:
                         m_stack.push(resNode);
                     }
                 }
-                else if (machineTop->getVal() == "Istruthvalue")
+                else if (machineTop->getVal() == "Istruthvalue") // Check if next item in stack is a boolean value
                 {
+                    m_stack.pop(); // Pop Istruthvalue token
+
+                    tree *isNextBool = m_stack.top(); // Get next item in stack
                     m_stack.pop();
-                    tree *isNextBool = m_stack.top();
-                    m_stack.pop();
+
                     if (isNextBool->getVal() == "true" || isNextBool->getVal() == "false")
                     {
                         tree *resNode = createNode("true", "BOOL");
@@ -784,11 +811,13 @@ public:
                         m_stack.push(resNode);
                     }
                 }
-                else if (machineTop->getVal() == "Isstring")
+                else if (machineTop->getVal() == "Isstring") // Check if next item in stack is a string
                 {
+                    m_stack.pop(); // Pop Isstring token
+
+                    tree *isNextString = m_stack.top(); // Get next item in stack
                     m_stack.pop();
-                    tree *isNextString = m_stack.top();
-                    m_stack.pop();
+
                     if (isNextString->getType() == "STRING")
                     {
                         tree *resNode = createNode("true", "BOOL");
@@ -800,11 +829,13 @@ public:
                         m_stack.push(resNode);
                     }
                 }
-                else if (machineTop->getVal() == "Istuple")
+                else if (machineTop->getVal() == "Istuple") // Check if next item in stack is a tuple
                 {
+                    m_stack.pop(); // Pop Istuple token
+
+                    tree *isNextTau = m_stack.top(); // Get next item in stack
                     m_stack.pop();
-                    tree *isNextTau = m_stack.top();
-                    m_stack.pop();
+
                     if (isNextTau->getType() == "tau")
                     {
                         tree *resNode = createNode("true", "BOOL");
@@ -816,10 +847,11 @@ public:
                         m_stack.push(resNode);
                     }
                 }
-                else if (machineTop->getVal() == "Isfunction")
+                else if (machineTop->getVal() == "Isfunction") // Check if next item in stack is a function
                 {
-                    m_stack.pop();
-                    tree *isNextFn = m_stack.top();
+                    m_stack.pop(); // Pop Isfunction token
+
+                    tree *isNextFn = m_stack.top(); // Get next item in stack
 
                     if (isNextFn->getVal() == "lambda")
                     {
@@ -832,10 +864,12 @@ public:
                         m_stack.push(resNode);
                     }
                 }
-                else if (machineTop->getVal() == "Isdummy")
+                else if (machineTop->getVal() == "Isdummy") // Check if next item in stack is dummy
                 {
-                    m_stack.pop();
-                    tree *isNextDmy = m_stack.top();
+                    m_stack.pop(); // Pop Isdummy token
+
+                    tree *isNextDmy = m_stack.top(); // Get next item in stack
+
                     if (isNextDmy->getVal() == "dummy")
                     {
                         tree *resNode = createNode("true", "BOOL");
@@ -847,81 +881,74 @@ public:
                         m_stack.push(resNode);
                     }
                 }
-                else if (machineTop->getVal() == "Stern")
+                else if (machineTop->getVal() == "Stem") // Get first character of string
                 {
-                    m_stack.pop();
-                    tree *isNextString = m_stack.top();
+                    m_stack.pop(); // Pop Stem token
+                    tree *isNextString = m_stack.top(); // Get next item in stack
 
                     if (isNextString->getVal() == "")
-                    {
-                        cout << " empty string" << endl;
                         return;
-                    }
 
                     if (isNextString->getType() == "STRING")
                     {
-                        string strRes = "'" + isNextString->getVal().substr(2, isNextString->getVal().length() - 3) + "'";
+                        string strRes = "'" + isNextString->getVal().substr(1, 1) + "'"; // Get first character
                         m_stack.pop();
                         m_stack.push(createNode(strRes, "STRING"));
                     }
                 }
-                else if (machineTop->getVal() == "Stem")
+                else if (machineTop->getVal() == "Stern") // Get remaining characters other the first character
                 {
-                    m_stack.pop();
-                    tree *isNextString = m_stack.top();
+                    m_stack.pop(); // Pop Stern token
+                    tree *isNextString = m_stack.top(); // Get next item in stack
 
                     if (isNextString->getVal() == "")
-                    {
-                        cout << " empty string" << endl;
                         return;
-                    }
 
                     if (isNextString->getType() == "STRING")
                     {
-                        string strRes = "'" + isNextString->getVal().substr(1, 1) + "'";
+                        string strRes = "'" + isNextString->getVal().substr(2, isNextString->getVal().length() - 3) + "'"; // Get remaining characters
                         m_stack.pop();
                         m_stack.push(createNode(strRes, "STRING"));
                     }
                 }
-                else if (machineTop->getVal() == "Order")
+                else if (machineTop->getVal() == "Order") // Get number of items in tuple
                 {
+                    m_stack.pop(); // Pop Order token
 
-                    m_stack.pop();
-
-                    tree *getTau = m_stack.top();
-                    tree *saveTau = getTau;
-
-                    int numOfKids = 0;
+                    int numOfItems = 0;
+                    tree *getTau = m_stack.top(); // Get next item in stack
 
                     if (getTau->left != NULL)
                         getTau = getTau->left;
 
                     while (getTau != NULL)
                     {
-                        numOfKids++;
+                        numOfItems++; // Count number of items
                         getTau = getTau->right;
                     }
+
                     getTau = m_stack.top();
                     m_stack.pop();
 
                     if ((getTau->getVal() == "nil"))
-                    {
-                        numOfKids = 0;
-                    }
+                        numOfItems = 0;
 
                     stringstream ss11;
-                    ss11 << numOfKids;
+                    ss11 << numOfItems;
                     string str34 = ss11.str();
                     tree *orderNode = createNode(str34, "INTEGER");
                     m_stack.push(orderNode);
                 }
-                else if (machineTop->getVal() == "Conc")
+                else if (machineTop->getVal() == "Conc") // Concatenate two strings
                 {
-                    tree *concNode = m_stack.top();
+                    tree *concNode = m_stack.top(); // Pop Conc token
                     m_stack.pop();
-                    tree *firstString = m_stack.top();
+
+                    tree *firstString = m_stack.top(); // Get first string
                     m_stack.pop();
-                    tree *secondString = m_stack.top();
+
+                    tree *secondString = m_stack.top(); // Get second string
+
                     if (secondString->getType() == "STRING" || (secondString->getType() == "STRING" && secondString->left != NULL && secondString->left->getVal() == "true"))
                     {
                         m_stack.pop();
@@ -937,18 +964,11 @@ public:
                         firstString->left = createNode("true", "flag");
                     }
                 }
-                else if (machineTop->getVal() == "ItoS")
-                {
-                    m_stack.pop(); // popping ItoS
-                    tree *convertToString = m_stack.top();
-                    m_stack.pop();
-                    m_stack.push(createNode("'" + convertToString->getVal() + ",", "STRING"));
-                }
             }
-            else if (nextToken->getVal().substr(0, 3) == "env")
+            else if (nextToken->getVal().substr(0, 3) == "env")  // If env token is on top of control stack (CSE Rule 5)
             {
                 stack<tree *> removeFromMachineToPutBack;
-                if (m_stack.top()->getVal() == "lambda")
+                if (m_stack.top()->getVal() == "lambda") // Pop lambda token and its parameters
                 {
                     removeFromMachineToPutBack.push(m_stack.top());
                     m_stack.pop();
@@ -961,12 +981,13 @@ public:
                 }
                 else
                 {
-                    removeFromMachineToPutBack.push(m_stack.top());
+                    removeFromMachineToPutBack.push(m_stack.top()); // Pop value from stack
                     m_stack.pop();
                 }
-                tree *remEnv = m_stack.top();
 
-                if (nextToken->getVal() == remEnv->getVal())
+                tree *remEnv = m_stack.top(); // Get the environment to remove
+
+                if (nextToken->getVal() == remEnv->getVal()) // If the environment to remove is the same as the one on top of the control stack
                 {
                     m_stack.pop();
 
@@ -978,29 +999,24 @@ public:
                         currEnv = getCurrEnvironment.top();
                     }
                     else
-                    {
                         currEnv = NULL;
-                    }
                 }
                 else
-                {
-                    cout << "error evn do not match";
                     return;
-                }
 
-                while (!removeFromMachineToPutBack.empty())
+                while (!removeFromMachineToPutBack.empty()) // Push the popped values back to the stack
                 {
                     m_stack.push(removeFromMachineToPutBack.top());
                     removeFromMachineToPutBack.pop();
                 }
             }
+            // If any variables are on top of the control stack
             else if (nextToken->getType() == "IDENTIFIER" && nextToken->getVal() != "Print" && nextToken->getVal() != "Isinteger" && nextToken->getVal() != "Istruthvalue" && nextToken->getVal() != "Isstring" && nextToken->getVal() != "Istuple" && nextToken->getVal() != "Isfunction" && nextToken->getVal() != "Isdummy" && nextToken->getVal() != "Stem" && nextToken->getVal() != "Stern" && nextToken->getVal() != "Conc")
             {
                 environment *temp = currEnv;
                 int flag = 0;
                 while (temp != NULL)
                 {
-
                     map<tree *, vector<tree *>>::iterator itr = temp->boundVar.begin();
                     while (itr != temp->boundVar.end())
                     {
@@ -1051,10 +1067,11 @@ public:
                 if (flag == 0)
                     return;
             }
-            else if (isBiOper(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not")
+            // If a binary or unary operator is on top of the control stack
+            else if (isBinaryOperator(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not") 
             {
-                string op = nextToken->getVal();
-                if (isBiOper(nextToken->getVal()))
+                string op = nextToken->getVal(); // Get the operator
+                if (isBinaryOperator(nextToken->getVal())) // If token is a binary operator
                 {
                     tree *node1 = m_stack.top();
                     m_stack.pop();
@@ -1287,10 +1304,10 @@ public:
                 tree *noOfChild = control.top(); // behind tua is the no of kids of tau
                 control.pop();
 
-                int numOfKids;
+                int numOfItems;
 
                 istringstream is1(noOfChild->getVal());
-                is1 >> numOfKids;
+                is1 >> numOfItems;
 
                 if (m_stack.top()->getVal() == "lambda")
                 {
@@ -1321,7 +1338,7 @@ public:
 
                 tree *sibling = myTuple->left;
 
-                for (int i = 1; i < numOfKids; i++)
+                for (int i = 1; i < numOfItems; i++)
                 {
                     tree *temp = m_stack.top();
                     if (temp->getVal() == "lambda")
@@ -1427,6 +1444,7 @@ public:
         printTuple(tauNode->right, res);
     }
 
+    // Adds spaces to the string
     string addSpaces(string temp)
     {
         for (int i = 1; i < temp.length(); i++)
