@@ -1563,7 +1563,6 @@ public:
             {
                 j++;
             }
-            // j=0;
             betaCount += 2;
         }
         else if (x->getVal() == "tau")
@@ -1604,54 +1603,15 @@ public:
 
     void makeST(tree *t)
     {
-        // standardizeAnd(t);
-        makeStandard(t);
+        makeStandardTree(t);
     }
 
-    tree *standardizeAnd(tree *t)
+    tree *makeStandardTree(tree *t)
     {
         if (t == NULL)
             return NULL;
-
-        if (t->getVal() == "and")
-        {
-            tree *equal = t->left;
-            t->setVal("=");
-            t->setType("KEYWORD");
-            t->left = createNode(",", "PUNCTION");
-            tree *comma = t->left;
-            comma->left = createNode(equal->left);
-            t->left->right = createNode("tau", "KEYWORD");
-            tree *tau = t->left->right;
-
-            tau->left = createNode(equal->left->right);
-            tau = tau->left;
-            comma = comma->left;
-            equal = equal->right;
-
-            while (equal != NULL)
-            {
-                comma->right = createNode(equal->left);
-                comma = comma->right;
-                tau->right = createNode(equal->left->right);
-                tau = tau->right;
-
-                equal = equal->right;
-            }
-        }
-
-        standardizeAnd(t->left);
-        standardizeAnd(t->right);
-
-        return t;
-    }
-
-    tree *makeStandard(tree *t)
-    {
-        if (t == NULL)
-            return NULL;
-        makeStandard(t->left);
-        makeStandard(t->right);
+        makeStandardTree(t->left);
+        makeStandardTree(t->right);
 
         if (t->getVal() == "let")
         {
