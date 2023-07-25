@@ -15,20 +15,14 @@ private:
 public:
 	tree *left;									// Left child
 	tree *right;								// Right child
-	void print_tree(int dots);					// Print tree
-	void setVal(string value);					// Set value of node
 	void setType(string typ);					// Set type of node
-	string getVal();							// Get value of node
+	void setVal(string value);					// Set value of node
 	string getType();							// Get type of node
+	string getVal();							// Get value of node
 	tree *createNode(string value, string typ); // Create node
 	tree *createNode(tree *x);					// Create node
+	void print_tree(int no_of_dots);					// Print tree
 };
-
-// Set value of node
-void tree::setVal(string value)
-{
-	val = value;
-}
 
 // Set type of node
 void tree::setType(string typ)
@@ -36,10 +30,10 @@ void tree::setType(string typ)
 	type = typ;
 }
 
-// Get value of node
-string tree::getVal()
+// Set value of node
+void tree::setVal(string value)
 {
-	return val;
+	val = value;
 }
 
 // Get type of node
@@ -48,33 +42,39 @@ string tree::getType()
 	return type;
 }
 
+// Get value of node
+string tree::getVal()
+{
+	return val;
+}
+
 // Create node with value and type
 tree *createNode(string value, string typ)
 {
-	tree *temp = new tree();
-	temp->setVal(value);
-	temp->setType(typ);
-	temp->left = NULL;
-	temp->right = NULL;
-	return temp;
+	tree *t = new tree();
+	t->setVal(value);
+	t->setType(typ);
+	t->left = NULL;
+	t->right = NULL;
+	return t;
 }
 
 // Create node with tree object
 tree *createNode(tree *x)
 {
-	tree *temp = new tree();
-	temp->setVal(x->getVal());
-	temp->setType(x->getType());
-	temp->left = x->left;
-	temp->right = NULL;
-	return temp;
+	tree *t = new tree();
+	t->setVal(x->getVal());
+	t->setType(x->getType());
+	t->left = x->left;
+	t->right = NULL;
+	return t;
 }
 
 // Print abstact syntax tree
-void tree::print_tree(int dots)
+void tree::print_tree(int no_of_dots)
 {
 	int n = 0;
-	while (n < dots)
+	while (n < no_of_dots)
 	{
 		cout << ".";
 		n++;
@@ -101,10 +101,10 @@ void tree::print_tree(int dots)
 	cout << endl;
 
 	if (left != NULL)
-		left->print_tree(dots + 1);
+		left->print_tree(no_of_dots + 1);
 
 	if (right != NULL)
-		right->print_tree(dots);
+		right->print_tree(no_of_dots);
 }
 
 #endif

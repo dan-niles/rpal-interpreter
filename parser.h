@@ -24,7 +24,7 @@ char operators[] = {'+', '-', '*', '<', '>', '&', '.', '@', '/', ':', '=', '~', 
 class parser
 {
 public:
-    token nextToken;            // Next token
+    token nextToken;     // Next token
     char readnew[10000]; // Read new character
     int index;           // Index of character
     int sizeOfFile;      // Size of file
@@ -96,7 +96,7 @@ public:
     }
 
     // Checks if the given string is a number
-    bool is_number(const std::string &s)
+    bool isNumber(const std::string &s)
     {
         std::string::const_iterator it = s.begin();
         while (it != s.end() && std::isdigit(*it))
@@ -115,7 +115,7 @@ public:
 
         if (type == "IDENTIFIER" || type == "INTEGER" || type == "STRING")
         {
-            build_tree(val, type, 0);
+            buildTree(val, type, 0);
         }
 
         nextToken = getToken(readnew);
@@ -127,7 +127,7 @@ public:
     }
 
     // Build tree for the given string, type and number of children
-    void build_tree(string val, string type, int child)
+    void buildTree(string val, string type, int child)
     {
         if (child == 0) // Leaf node
         {
@@ -379,7 +379,7 @@ public:
             while (setOfDeltaArray[size][0] != NULL)
                 size++;
 
-            vector<vector<tree *>> setOfDelta;
+            vector<vector<tree *> > setOfDelta;
             for (int i = 0; i < size; i++)
             {
                 vector<tree *> temp;
@@ -396,80 +396,84 @@ public:
     }
 
     // Control Stack Environment Machine
-    void cse_machine(vector<vector<tree *>> &controlStructure)
+    void cse_machine(vector<vector<tree *> > &controlStructure)
     {
-        stack<tree *> control;
-        stack<tree *> machine;
+        stack<tree *> control;                   // Stack for control structure
+        stack<tree *> m_stack;                   // Stack for operands
         stack<environment *> stackOfEnvironment; // Stack of environments
         stack<environment *> getCurrEnvironment;
 
         int currEnvIndex = 0;                     // Initial environment
-        environment *currEnv = new environment(); // env0;
+        environment *currEnv = new environment(); // e0
+        currEnv->name = "env0";
 
         currEnvIndex++;
-        machine.push(createNode(currEnv->name, "ENV"));
+        m_stack.push(createNode(currEnv->name, "ENV"));
         control.push(createNode(currEnv->name, "ENV"));
         stackOfEnvironment.push(currEnv);
         getCurrEnvironment.push(currEnv);
 
         vector<tree *> tempDelta;
-        tempDelta = controlStructure.at(0);
+        tempDelta = controlStructure.at(0); // Get the first control structure
         for (int i = 0; i < tempDelta.size(); i++)
         {
-            control.push(tempDelta.at(i));
+            control.push(tempDelta.at(i)); // Push each element of the control structure to the control stack
         }
 
         while (!control.empty())
         {
             tree *nextToken;
-            nextToken = control.top();
-            control.pop();
+            nextToken = control.top(); // Get the top of the control stack
+            control.pop();             // Pop the top of the control stack
 
             if (nextToken->getVal() == "nil")
             {
                 nextToken->setType("tau");
             }
 
-            if (nextToken->getType() == "INTEGER" || nextToken->getType() == "STRING" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || (nextToken->getVal() == "Conc" /*&& behind->getVal()=="gamma" && behind2->getVal()=="gamma"*/) || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil" || nextToken->getVal() == "ItoS" /*|| isBiOper(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not"*/)
+            if (nextToken->getType() == "INTEGER" || nextToken->getType() == "STRING" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || nextToken->getVal() == "Conc" || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil" || nextToken->getVal() == "ItoS" /*|| isBiOper(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not"*/)
             {
                 if (nextToken->getVal() == "lambda")
                 {
-                    tree *boundVar = control.top();
+                    tree *boundVar = control.top(); // Variable bouded to lambda
                     control.pop();
-                    tree *nextDeltaIndex = control.top();
+
+                    tree *nextDeltaIndex = control.top(); // Index of next control structure to access
                     control.pop();
+
                     tree *env = createNode(currEnv->name, "ENV");
-                    machine.push(nextDeltaIndex); // index of next delta structure to open
-                    machine.push(boundVar);       // lambda is bound to this variable
-                    machine.push(env);            // then environment it was created in
-                    machine.push(nextToken);      // 1 : lambda
+
+                    m_stack.push(nextDeltaIndex); // Index of next control structure to access
+                    m_stack.push(boundVar);       // Variable bouded to lambda
+                    m_stack.push(env);            // Environment it was created in
+                    m_stack.push(nextToken);      // Lambda Token
                 }
                 else
                 {
-                    machine.push(nextToken);
+                    m_stack.push(nextToken); // Push token to the stack
                 }
             }
             else if (nextToken->getVal() == "gamma")
             {
-                tree *machineTop = machine.top();
-                if (machineTop->getVal() == "lambda")
+                tree *machineTop = m_stack.top();
+                if (machineTop->getVal() == "lambda") // Check if the next token is lambda
                 {
-                    machine.pop(); // popped lambda
+                    m_stack.pop(); // Pop lambda token
 
-                    tree *prevEnv = machine.top();
-                    machine.pop(); // popped the evn in which it was created
+                    tree *prevEnv = m_stack.top();
+                    m_stack.pop(); // Pop the environment in which it was created
 
-                    tree *boundVar = machine.top();
-                    machine.pop(); // bound variable of lambda
+                    tree *boundVar = m_stack.top();
+                    m_stack.pop(); // Pop variable bounded to lambda
 
-                    tree *nextDeltaIndex = machine.top();
-                    machine.pop(); // next delta to be opened
+                    tree *nextDeltaIndex = m_stack.top();
+                    m_stack.pop(); // Pop index of next control structure to access
 
-                    environment *newEnv = new environment(); // env0;
+                    environment *newEnv = new environment(); // Create new environment
 
                     std::stringstream ss;
                     ss << currEnvIndex;
-                    string str = ss.str(); // creating the string of current evn number
+                    string str = ss.str(); // Create string of new environment name
 
                     newEnv->name = "env" + str;
 
@@ -484,9 +488,9 @@ public:
                     }
                     newEnv->prev = tempEnv.top();
 
-                    if (boundVar->getVal() == "," && machine.top()->getVal() == "tau")
+                    if (boundVar->getVal() == "," && m_stack.top()->getVal() == "tau")
                     {
-                        // machine.pop()
+                        // m_stack.pop()
                         vector<tree *> boundVariables;
                         tree *leftOfComa = boundVar->left;
                         while (leftOfComa != NULL)
@@ -496,8 +500,8 @@ public:
                         }
 
                         vector<tree *> boundValues;
-                        tree *tau = machine.top(); // popping the tau;
-                        machine.pop();
+                        tree *tau = m_stack.top(); // popping the tau;
+                        m_stack.pop();
 
                         tree *tauLeft = tau->left;
                         while (tauLeft != NULL)
@@ -516,18 +520,18 @@ public:
 
                             vector<tree *> listOfNodeVal;
                             listOfNodeVal.push_back(boundValues.at(i));
-                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVariables.at(i), listOfNodeVal));
+                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVariables.at(i), listOfNodeVal));
                         }
                     }
-                    else if (machine.top()->getVal() == "eta")
+                    else if (m_stack.top()->getVal() == "eta")
                     {
                         vector<tree *> listOfNodeVal;
                         stack<tree *> temp;
                         int j = 0;
                         while (j < 4)
                         {
-                            temp.push(machine.top());
-                            machine.pop();
+                            temp.push(m_stack.top());
+                            m_stack.pop();
                             j++;
                         }
 
@@ -539,17 +543,17 @@ public:
                             listOfNodeVal.push_back(fromStack);
                         }
 
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
                     }
-                    else if (machine.top()->getVal() == "lambda")
+                    else if (m_stack.top()->getVal() == "lambda")
                     {
                         vector<tree *> listOfNodeVal;
                         stack<tree *> temp;
                         int j = 0;
                         while (j < 4)
                         {
-                            temp.push(machine.top());
-                            machine.pop();
+                            temp.push(m_stack.top());
+                            m_stack.pop();
                             j++;
                         }
 
@@ -560,17 +564,17 @@ public:
                             temp.pop();
                             listOfNodeVal.push_back(fromStack);
                         }
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
                     }
-                    else if (machine.top()->getVal() == "Conc")
+                    else if (m_stack.top()->getVal() == "Conc")
                     {
                         vector<tree *> listOfNodeVal;
                         stack<tree *> temp;
                         int j = 0;
                         while (j < 2)
                         {
-                            temp.push(machine.top());
-                            machine.pop();
+                            temp.push(m_stack.top());
+                            m_stack.pop();
                             j++;
                         }
 
@@ -581,21 +585,21 @@ public:
                             temp.pop();
                             listOfNodeVal.push_back(fromStack);
                         }
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
                     }
                     else
                     {
-                        tree *bindVarVal = machine.top();
+                        tree *bindVarVal = m_stack.top();
 
-                        machine.pop();
+                        m_stack.pop();
                         vector<tree *> listOfNodeVal;
                         listOfNodeVal.push_back(bindVarVal);
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, listOfNodeVal));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
                     }
 
                     currEnv = newEnv;
                     control.push(createNode(currEnv->name, "ENV"));
-                    machine.push(createNode(currEnv->name, "ENV"));
+                    m_stack.push(createNode(currEnv->name, "ENV"));
                     stackOfEnvironment.push(currEnv);
                     getCurrEnvironment.push(currEnv);
 
@@ -613,10 +617,10 @@ public:
                 else if (machineTop->getVal() == "tau")
                 {
 
-                    tree *tau = machine.top(); // saved the tau with kids on left to right;
-                    machine.pop();
-                    tree *selectChildNum = machine.top();
-                    machine.pop();
+                    tree *tau = m_stack.top(); // saved the tau with kids on left to right;
+                    m_stack.pop();
+                    tree *selectChildNum = m_stack.top();
+                    m_stack.pop();
 
                     istringstream is4(selectChildNum->getVal());
                     int childIndex;
@@ -634,83 +638,83 @@ public:
                         tree *getNode = selectedChild->left;
                         while (getNode != NULL)
                         {
-                            machine.push(createNode(getNode));
+                            m_stack.push(createNode(getNode));
                             getNode = getNode->right;
                         }
                     }
                     else
                     {
-                        machine.push(selectedChild);
+                        m_stack.push(selectedChild);
                     }
                 }
                 else if (machineTop->getVal() == "YSTAR")
                 {
-                    machine.pop(); // pop the YSTAR
-                    if (machine.top()->getVal() == "lambda")
+                    m_stack.pop(); // pop the YSTAR
+                    if (m_stack.top()->getVal() == "lambda")
                     {
-                        tree *etaNode = createNode(machine.top()->getVal(), machine.top()->getType()); // getting eta
+                        tree *etaNode = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // getting eta
                         etaNode->setVal("eta");
-                        machine.pop();
-                        tree *boundEvn1 = machine.top(); // getting bound evn
-                        machine.pop();
-                        tree *boundVar1 = machine.top(); // getting bound var
-                        machine.pop();
-                        tree *deltaIndex1 = machine.top(); // getting delta index
-                        machine.pop();
+                        m_stack.pop();
+                        tree *boundEvn1 = m_stack.top(); // getting bound evn
+                        m_stack.pop();
+                        tree *boundVar1 = m_stack.top(); // getting bound var
+                        m_stack.pop();
+                        tree *deltaIndex1 = m_stack.top(); // getting delta index
+                        m_stack.pop();
 
-                        machine.push(deltaIndex1); // pushing eta node 1
-                        machine.push(boundVar1);   // 2
-                        machine.push(boundEvn1);   // 3
-                        machine.push(etaNode);     // eta completed 4
+                        m_stack.push(deltaIndex1); // pushing eta node 1
+                        m_stack.push(boundVar1);   // 2
+                        m_stack.push(boundEvn1);   // 3
+                        m_stack.push(etaNode);     // eta completed 4
                     }
                     else
                     {
-                        cout << " PROBLEM WITH RECURSSION ******** " << machine.top()->getVal() << endl;
+                        cout << " PROBLEM WITH RECURSSION ******** " << m_stack.top()->getVal() << endl;
                         return;
                     }
                 }
                 else if (machineTop->getVal() == "eta")
                 {
-                    tree *eta = machine.top(); // getting eta
-                    machine.pop();
-                    tree *boundEvn1 = machine.top(); // getting bound evn
-                    machine.pop();
-                    tree *boundVar1 = machine.top(); // getting bound var
-                    machine.pop();
-                    tree *deltaIndex1 = machine.top(); // getting delta index
-                    machine.pop();
+                    tree *eta = m_stack.top(); // getting eta
+                    m_stack.pop();
+                    tree *boundEvn1 = m_stack.top(); // getting bound evn
+                    m_stack.pop();
+                    tree *boundVar1 = m_stack.top(); // getting bound var
+                    m_stack.pop();
+                    tree *deltaIndex1 = m_stack.top(); // getting delta index
+                    m_stack.pop();
 
-                    machine.push(deltaIndex1); // pushing eta node 1
-                    machine.push(boundVar1);   // 2
-                    machine.push(boundEvn1);   // 3
-                    machine.push(eta);         // eta completed 4
+                    m_stack.push(deltaIndex1); // pushing eta node 1
+                    m_stack.push(boundVar1);   // 2
+                    m_stack.push(boundEvn1);   // 3
+                    m_stack.push(eta);         // eta completed 4
 
-                    machine.push(deltaIndex1);                     // 1
-                    machine.push(boundVar1);                       // 2
-                    machine.push(boundEvn1);                       // 3
-                    machine.push(createNode("lambda", "KEYWORD")); // 4
+                    m_stack.push(deltaIndex1);                     // 1
+                    m_stack.push(boundVar1);                       // 2
+                    m_stack.push(boundEvn1);                       // 3
+                    m_stack.push(createNode("lambda", "KEYWORD")); // 4
                     control.push(createNode("gamma", "KEYWORD"));
                     control.push(createNode("gamma", "KEYWORD"));
                 }
                 else if (machineTop->getVal() == "Print")
                 {
-                    machine.pop();
-                    tree *nextToPrint = machine.top();
+                    m_stack.pop();
+                    tree *nextToPrint = m_stack.top();
                     if (nextToPrint->getVal() == "lambda")
                     {
-                        machine.pop();
-                        tree *env = machine.top();
-                        machine.pop();
-                        tree *boundVar = machine.top();
-                        machine.pop();
-                        tree *num = machine.top();
-                        machine.pop();
+                        m_stack.pop();
+                        tree *env = m_stack.top();
+                        m_stack.pop();
+                        tree *boundVar = m_stack.top();
+                        m_stack.pop();
+                        tree *num = m_stack.top();
+                        m_stack.pop();
                         cout << "[lambda closure: " << boundVar->getVal() << ": " << num->getVal() << "]";
                         return;
                     }
                     else if (nextToPrint->getVal() == "tau")
                     {
-                        tree *getTau = machine.top();
+                        tree *getTau = m_stack.top();
                         stack<tree *> res;
                         printTuple(getTau, res);
                         stack<tree *> getRev;
@@ -737,111 +741,111 @@ public:
                     else
                     {
 
-                        if (machine.top()->getType() == "STRING")
-                            cout << addSpaces(machine.top()->getVal());
+                        if (m_stack.top()->getType() == "STRING")
+                            cout << addSpaces(m_stack.top()->getVal());
                         else
-                            cout << machine.top()->getVal();
+                            cout << m_stack.top()->getVal();
                     }
                 }
                 else if (machineTop->getVal() == "Isinteger")
                 {
-                    machine.pop();
-                    tree *isNextInt = machine.top();
-                    machine.pop();
+                    m_stack.pop();
+                    tree *isNextInt = m_stack.top();
+                    m_stack.pop();
                     if (isNextInt->getType() == "INTEGER")
                     {
                         tree *resNode = createNode("true", "boolean");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                     else
                     {
                         tree *resNode = createNode("false", "boolean");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Istruthvalue")
                 {
-                    machine.pop();
-                    tree *isNextBool = machine.top();
-                    machine.pop();
+                    m_stack.pop();
+                    tree *isNextBool = m_stack.top();
+                    m_stack.pop();
                     if (isNextBool->getVal() == "true" || isNextBool->getVal() == "false")
                     {
                         tree *resNode = createNode("true", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                     else
                     {
                         tree *resNode = createNode("false", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Isstring")
                 {
-                    machine.pop();
-                    tree *isNextString = machine.top();
-                    machine.pop();
+                    m_stack.pop();
+                    tree *isNextString = m_stack.top();
+                    m_stack.pop();
                     if (isNextString->getType() == "STRING")
                     {
                         tree *resNode = createNode("true", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                     else
                     {
                         tree *resNode = createNode("false", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Istuple")
                 {
-                    machine.pop();
-                    tree *isNextTau = machine.top();
-                    machine.pop();
+                    m_stack.pop();
+                    tree *isNextTau = m_stack.top();
+                    m_stack.pop();
                     if (isNextTau->getType() == "tau")
                     {
                         tree *resNode = createNode("true", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                     else
                     {
                         tree *resNode = createNode("false", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Isfunction")
                 {
-                    machine.pop();
-                    tree *isNextFn = machine.top();
+                    m_stack.pop();
+                    tree *isNextFn = m_stack.top();
 
                     if (isNextFn->getVal() == "lambda")
                     {
                         tree *resNode = createNode("true", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                     else
                     {
                         tree *resNode = createNode("false", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Isdummy")
                 {
-                    machine.pop();
-                    tree *isNextDmy = machine.top();
+                    m_stack.pop();
+                    tree *isNextDmy = m_stack.top();
                     if (isNextDmy->getVal() == "dummy")
                     {
                         tree *resNode = createNode("true", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                     else
                     {
                         tree *resNode = createNode("false", "BOOL");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                     }
                 }
                 else if (machineTop->getVal() == "Stern")
                 {
-                    machine.pop();
-                    tree *isNextString = machine.top();
+                    m_stack.pop();
+                    tree *isNextString = m_stack.top();
 
                     if (isNextString->getVal() == "")
                     {
@@ -852,14 +856,14 @@ public:
                     if (isNextString->getType() == "STRING")
                     {
                         string strRes = "'" + isNextString->getVal().substr(2, isNextString->getVal().length() - 3) + "'";
-                        machine.pop();
-                        machine.push(createNode(strRes, "STRING"));
+                        m_stack.pop();
+                        m_stack.push(createNode(strRes, "STRING"));
                     }
                 }
                 else if (machineTop->getVal() == "Stem")
                 {
-                    machine.pop();
-                    tree *isNextString = machine.top();
+                    m_stack.pop();
+                    tree *isNextString = m_stack.top();
 
                     if (isNextString->getVal() == "")
                     {
@@ -870,16 +874,16 @@ public:
                     if (isNextString->getType() == "STRING")
                     {
                         string strRes = "'" + isNextString->getVal().substr(1, 1) + "'";
-                        machine.pop();
-                        machine.push(createNode(strRes, "STRING"));
+                        m_stack.pop();
+                        m_stack.push(createNode(strRes, "STRING"));
                     }
                 }
                 else if (machineTop->getVal() == "Order")
                 {
 
-                    machine.pop();
+                    m_stack.pop();
 
-                    tree *getTau = machine.top();
+                    tree *getTau = m_stack.top();
                     tree *saveTau = getTau;
 
                     int numOfKids = 0;
@@ -892,8 +896,8 @@ public:
                         numOfKids++;
                         getTau = getTau->right;
                     }
-                    getTau = machine.top();
-                    machine.pop();
+                    getTau = m_stack.top();
+                    m_stack.pop();
 
                     if ((getTau->getVal() == "nil"))
                     {
@@ -904,64 +908,64 @@ public:
                     ss11 << numOfKids;
                     string str34 = ss11.str();
                     tree *orderNode = createNode(str34, "INTEGER");
-                    machine.push(orderNode);
+                    m_stack.push(orderNode);
                 }
                 else if (machineTop->getVal() == "Conc")
                 {
-                    tree *concNode = machine.top();
-                    machine.pop();
-                    tree *firstString = machine.top();
-                    machine.pop();
-                    tree *secondString = machine.top();
+                    tree *concNode = m_stack.top();
+                    m_stack.pop();
+                    tree *firstString = m_stack.top();
+                    m_stack.pop();
+                    tree *secondString = m_stack.top();
                     if (secondString->getType() == "STRING" || (secondString->getType() == "STRING" && secondString->left != NULL && secondString->left->getVal() == "true"))
                     {
-                        machine.pop();
+                        m_stack.pop();
                         string res = "'" + firstString->getVal().substr(1, firstString->getVal().length() - 2) + secondString->getVal().substr(1, secondString->getVal().length() - 2) + "'";
                         tree *resNode = createNode(res, "STRING");
-                        machine.push(resNode);
+                        m_stack.push(resNode);
                         control.pop();
                     }
                     else
                     {
                         concNode->left = firstString;
-                        machine.push(concNode);
+                        m_stack.push(concNode);
                         firstString->left = createNode("true", "flag");
                     }
                 }
                 else if (machineTop->getVal() == "ItoS")
                 {
-                    machine.pop(); // popping ItoS
-                    tree *convertToString = machine.top();
-                    machine.pop();
-                    machine.push(createNode("'" + convertToString->getVal() + ",", "STRING"));
+                    m_stack.pop(); // popping ItoS
+                    tree *convertToString = m_stack.top();
+                    m_stack.pop();
+                    m_stack.push(createNode("'" + convertToString->getVal() + ",", "STRING"));
                 }
             }
             else if (nextToken->getVal().substr(0, 3) == "env")
             {
                 stack<tree *> removeFromMachineToPutBack;
-                if (machine.top()->getVal() == "lambda")
+                if (m_stack.top()->getVal() == "lambda")
                 {
-                    removeFromMachineToPutBack.push(machine.top());
-                    machine.pop();
-                    removeFromMachineToPutBack.push(machine.top());
-                    machine.pop();
-                    removeFromMachineToPutBack.push(machine.top());
-                    machine.pop();
-                    removeFromMachineToPutBack.push(machine.top());
-                    machine.pop();
+                    removeFromMachineToPutBack.push(m_stack.top());
+                    m_stack.pop();
+                    removeFromMachineToPutBack.push(m_stack.top());
+                    m_stack.pop();
+                    removeFromMachineToPutBack.push(m_stack.top());
+                    m_stack.pop();
+                    removeFromMachineToPutBack.push(m_stack.top());
+                    m_stack.pop();
                 }
                 else
                 {
-                    removeFromMachineToPutBack.push(machine.top());
-                    machine.pop();
+                    removeFromMachineToPutBack.push(m_stack.top());
+                    m_stack.pop();
                 }
-                tree *remEnv = machine.top();
+                tree *remEnv = m_stack.top();
 
                 if (nextToken->getVal() == remEnv->getVal())
                 {
-                    machine.pop();
+                    m_stack.pop();
 
-                    stack<tree *> printMachine = machine;
+                    stack<tree *> printMachine = m_stack;
 
                     getCurrEnvironment.pop();
                     if (!getCurrEnvironment.empty())
@@ -981,7 +985,7 @@ public:
 
                 while (!removeFromMachineToPutBack.empty())
                 {
-                    machine.push(removeFromMachineToPutBack.top());
+                    m_stack.push(removeFromMachineToPutBack.top());
                     removeFromMachineToPutBack.pop();
                 }
             }
@@ -992,7 +996,7 @@ public:
                 while (temp != NULL)
                 {
 
-                    map<tree *, vector<tree *>>::iterator itr = temp->boundVar.begin();
+                    map<tree *, vector<tree *> >::iterator itr = temp->boundVar.begin();
                     while (itr != temp->boundVar.end())
                     {
                         if (nextToken->getVal() == itr->first->getVal())
@@ -1001,8 +1005,8 @@ public:
                             if (temp.size() == 1 && temp.at(0)->getVal() == "Conc" && temp.at(0)->left != NULL)
                             {
                                 control.push(createNode("gamma", "KEYWORD"));
-                                machine.push(temp.at(0)->left);
-                                machine.push(temp.at(0));
+                                m_stack.push(temp.at(0)->left);
+                                m_stack.push(temp.at(0));
                             }
                             else
                             {
@@ -1014,7 +1018,7 @@ public:
                                         tree *myLambda = temp.at(i)->left;
                                         while (myLambda != NULL)
                                         {
-                                            machine.push(createNode(myLambda));
+                                            m_stack.push(createNode(myLambda));
                                             myLambda = myLambda->right;
                                         }
                                     }
@@ -1025,7 +1029,7 @@ public:
                                             stack<tree *> res;
                                             printTuple(temp.at(i), res);
                                         }
-                                        machine.push(temp.at(i));
+                                        m_stack.push(temp.at(i));
                                     }
                                     i++;
                                 }
@@ -1047,10 +1051,10 @@ public:
                 string op = nextToken->getVal();
                 if (isBiOper(nextToken->getVal()))
                 {
-                    tree *node1 = machine.top();
-                    machine.pop();
-                    tree *node2 = machine.top();
-                    machine.pop();
+                    tree *node1 = m_stack.top();
+                    m_stack.pop();
+                    tree *node2 = m_stack.top();
+                    m_stack.pop();
                     if (node1->getType() == "INTEGER" && node2->getType() == "INTEGER")
                     {
                         int num1;
@@ -1070,7 +1074,7 @@ public:
                             ss << res;
                             string str = ss.str();
                             tree *res = createNode(str, "INTEGER");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "-")
                         {
@@ -1079,7 +1083,7 @@ public:
                             ss << res;
                             string str = ss.str();
                             tree *res = createNode(str, "INTEGER");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "*")
                         {
@@ -1088,7 +1092,7 @@ public:
                             ss << res;
                             string str = ss.str();
                             tree *res = createNode(str, "INTEGER");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "/")
                         {
@@ -1099,7 +1103,7 @@ public:
                             ss << res;
                             string str = ss.str();
                             tree *res = createNode(str, "INTEGER");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "**")
                         {
@@ -1108,43 +1112,43 @@ public:
                             ss << res;
                             string str = ss.str();
                             tree *res = createNode(str, "INTEGER");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "gr" || op == ">")
                         {
                             string resStr = num1 > num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "ge" || op == ">=")
                         {
                             string resStr = num1 >= num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "ls" || op == "<")
                         {
                             string resStr = num1 < num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "le" || op == "<=")
                         {
                             string resStr = num1 <= num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "eq" || op == "=")
                         {
                             string resStr = num1 == num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "ne" || op == "><")
                         {
                             string resStr = num1 != num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                     }
                     else if (node1->getType() == "STRING" && node2->getType() == "STRING")
@@ -1153,13 +1157,13 @@ public:
                         {
                             string resStr = node1->getVal() != node2->getVal() ? "true" : "false";
                             tree *res = createNode(resStr, "BOOL");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "eq" || op == "==")
                         {
                             string resStr = node1->getVal() == node2->getVal() ? "true" : "false";
                             tree *res = createNode(resStr, "BOOL");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                     }
                     else if ((node1->getVal() == "true" || node1->getVal() == "false") && (node2->getVal() == "false" || node2->getVal() == "true"))
@@ -1168,13 +1172,13 @@ public:
                         {
                             string resStr = node1->getVal() != node2->getVal() ? "true" : "false";
                             tree *res = createNode(resStr, "BOOL");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "eq" || op == "==")
                         {
                             string resStr = node1->getVal() == node2->getVal() ? "true" : "false";
                             tree *res = createNode(resStr, "BOOL");
-                            machine.push(res);
+                            m_stack.push(res);
                         }
                         else if (op == "or")
                         {
@@ -1183,13 +1187,13 @@ public:
                             {
                                 resStr = "true";
                                 tree *res = createNode(resStr, "BOOL");
-                                machine.push(res);
+                                m_stack.push(res);
                             }
                             else
                             {
                                 resStr = "false";
                                 tree *res = createNode(resStr, "BOOL");
-                                machine.push(res);
+                                m_stack.push(res);
                             }
                         }
                         else if (op == "&")
@@ -1199,13 +1203,13 @@ public:
                             {
                                 resStr = "true";
                                 tree *res = createNode(resStr, "BOOL");
-                                machine.push(res);
+                                m_stack.push(res);
                             }
                             else
                             {
                                 resStr = "false";
                                 tree *res = createNode(resStr, "BOOL");
-                                machine.push(res);
+                                m_stack.push(res);
                             }
                         }
                     }
@@ -1214,8 +1218,8 @@ public:
                 {
                     if (op == "neg")
                     {
-                        tree *node1 = machine.top();
-                        machine.pop();
+                        tree *node1 = m_stack.top();
+                        m_stack.pop();
                         istringstream is1(node1->getVal());
                         int num1;
                         is1 >> num1;
@@ -1224,19 +1228,19 @@ public:
                         ss << res;
                         string str = ss.str();
                         tree *resStr = createNode(str, "INTEGER");
-                        machine.push(resStr);
+                        m_stack.push(resStr);
                     }
-                    else if (op == "not" && (machine.top()->getVal() == "true" || machine.top()->getVal() == "false"))
+                    else if (op == "not" && (m_stack.top()->getVal() == "true" || m_stack.top()->getVal() == "false"))
                     {
-                        if (machine.top()->getVal() == "true")
+                        if (m_stack.top()->getVal() == "true")
                         {
-                            machine.pop();
-                            machine.push(createNode("false", "BOOL"));
+                            m_stack.pop();
+                            m_stack.push(createNode("false", "BOOL"));
                         }
                         else
                         {
-                            machine.pop();
-                            machine.push(createNode("true", "BOOL"));
+                            m_stack.pop();
+                            m_stack.push(createNode("true", "BOOL"));
                         }
                     }
                 }
@@ -1247,8 +1251,8 @@ public:
             }
             else if (nextToken->getVal() == "beta")
             {
-                tree *truthVal = machine.top();
-                machine.pop();
+                tree *truthVal = m_stack.top();
+                m_stack.pop();
                 tree *elseIndex = control.top();
                 control.pop();
                 tree *thenIndex = control.top();
@@ -1283,19 +1287,19 @@ public:
                 istringstream is1(noOfChild->getVal());
                 is1 >> numOfKids;
 
-                if (machine.top()->getVal() == "lambda")
+                if (m_stack.top()->getVal() == "lambda")
                 {
-                    tree *lamda = createNode(machine.top()->getVal(), machine.top()->getType()); // popped lambda
-                    machine.pop();
+                    tree *lamda = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // popped lambda
+                    m_stack.pop();
 
-                    tree *prevEnv = createNode(machine.top()->getVal(), machine.top()->getType());
-                    machine.pop(); // popped the evn in which it was created
+                    tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                    m_stack.pop(); // popped the evn in which it was created
 
-                    tree *boundVar = createNode(machine.top()->getVal(), machine.top()->getType());
-                    machine.pop(); // bound variable of lambda
+                    tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                    m_stack.pop(); // bound variable of lambda
 
-                    tree *nextDeltaIndex = createNode(machine.top()->getVal(), machine.top()->getType());
-                    machine.pop(); // next delta to be opened
+                    tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                    m_stack.pop(); // next delta to be opened
 
                     tree *myLambda = createNode("lamdaTuple", "lamdaTuple");
                     myLambda->left = nextDeltaIndex;
@@ -1306,28 +1310,28 @@ public:
                 }
                 else
                 {
-                    myTuple->left = createNode(machine.top()); // removing right link
-                    machine.pop();
+                    myTuple->left = createNode(m_stack.top()); // removing right link
+                    m_stack.pop();
                 }
 
                 tree *sibling = myTuple->left;
 
                 for (int i = 1; i < numOfKids; i++)
                 {
-                    tree *temp = machine.top();
+                    tree *temp = m_stack.top();
                     if (temp->getVal() == "lambda")
                     {
-                        tree *lamda = createNode(machine.top()->getVal(), machine.top()->getType()); // popped lambda
-                        machine.pop();
+                        tree *lamda = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // popped lambda
+                        m_stack.pop();
 
-                        tree *prevEnv = createNode(machine.top()->getVal(), machine.top()->getType());
-                        machine.pop(); // popped the evn in which it was created
+                        tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                        m_stack.pop(); // popped the evn in which it was created
 
-                        tree *boundVar = createNode(machine.top()->getVal(), machine.top()->getType());
-                        machine.pop(); // bound variable of lambda
+                        tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                        m_stack.pop(); // bound variable of lambda
 
-                        tree *nextDeltaIndex = createNode(machine.top()->getVal(), machine.top()->getType());
-                        machine.pop(); // next delta to be opened
+                        tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType());
+                        m_stack.pop(); // next delta to be opened
 
                         tree *myLambda = createNode("lamdaTuple", "lamdaTuple");
 
@@ -1340,36 +1344,36 @@ public:
                     }
                     else
                     {
-                        machine.pop();
+                        m_stack.pop();
                         sibling->right = temp;
                         sibling = sibling->right;
                     }
                 }
-                machine.push(myTuple);
+                m_stack.push(myTuple);
             }
             else if (nextToken->getVal() == "aug")
             {
-                tree *tokenOne = createNode(machine.top());
-                machine.pop();
-                tree *tokenTwo = createNode(machine.top());
-                machine.pop();
+                tree *tokenOne = createNode(m_stack.top());
+                m_stack.pop();
+                tree *tokenTwo = createNode(m_stack.top());
+                m_stack.pop();
                 if (tokenOne->getVal() == "nil" && tokenTwo->getVal() == "nil")
                 {
                     tree *myNilTuple = createNode("tau", "tau");
                     myNilTuple->left = tokenOne;
-                    machine.push(myNilTuple);
+                    m_stack.push(myNilTuple);
                 }
                 else if (tokenOne->getVal() == "nil")
                 {
                     tree *myNilTuple = createNode("tau", "tau");
                     myNilTuple->left = tokenTwo;
-                    machine.push(myNilTuple);
+                    m_stack.push(myNilTuple);
                 }
                 else if (tokenTwo->getVal() == "nil")
                 {
                     tree *myNilTuple = createNode("tau", "tau");
                     myNilTuple->left = tokenOne;
-                    machine.push(myNilTuple);
+                    m_stack.push(myNilTuple);
                 }
                 else if (tokenOne->getType() != "tau")
                 {
@@ -1379,7 +1383,7 @@ public:
                         myTuple = myTuple->right;
                     }
                     myTuple->right = createNode(tokenOne);
-                    machine.push(tokenTwo);
+                    m_stack.push(tokenTwo);
                 }
                 else if (tokenTwo->getType() != "tau")
                 {
@@ -1389,14 +1393,14 @@ public:
                         myTuple = myTuple->right;
                     }
                     myTuple->right = createNode(tokenTwo);
-                    machine.push(tokenOne);
+                    m_stack.push(tokenOne);
                 }
                 else
                 {
                     tree *myNilTuple = createNode("tau", "tau");
                     myNilTuple->left = tokenOne;
                     myNilTuple->left->right = tokenTwo;
-                    machine.push(myNilTuple);
+                    m_stack.push(myNilTuple);
                 }
             }
         }
@@ -1784,7 +1788,7 @@ public:
             read("in", "KEYWORD"); // read in
             procedure_E();
 
-            build_tree("let", "KEYWORD", 2);
+            buildTree("let", "KEYWORD", 2);
         }
         // E -> ’fn’ Vb+ ’.’ E
         else if (nextToken.getVal() == "fn")
@@ -1799,7 +1803,7 @@ public:
             read(".", "OPERATOR");
             procedure_E();
 
-            build_tree("lambda", "KEYWORD", n + 1);
+            buildTree("lambda", "KEYWORD", n + 1);
         }
         // E -> Ew
         else
@@ -1817,7 +1821,7 @@ public:
         {
             read("where", "KEYWORD");
             procedure_Dr();
-            build_tree("where", "KEYWORD", 2);
+            buildTree("where", "KEYWORD", 2);
         }
     }
 
@@ -1835,7 +1839,7 @@ public:
         }
         if (n > 1)
         {
-            build_tree("tau", "KEYWORD", n);
+            buildTree("tau", "KEYWORD", n);
         }
     }
 
@@ -1848,7 +1852,7 @@ public:
         {
             read("aug", "KEYWORD");
             procedure_Tc();
-            build_tree("aug", "KEYWORD", 2);
+            buildTree("aug", "KEYWORD", 2);
         }
     }
 
@@ -1863,7 +1867,7 @@ public:
             procedure_Tc();
             read("|", "OPERATOR");
             procedure_Tc();
-            build_tree("->", "KEYWORD", 3);
+            buildTree("->", "KEYWORD", 3);
         }
     }
 
@@ -1875,7 +1879,7 @@ public:
         {
             read("or", "KEYWORD");
             procedure_Bt();
-            build_tree("or", "KEYWORD", 2);
+            buildTree("or", "KEYWORD", 2);
         }
     }
 
@@ -1887,7 +1891,7 @@ public:
         {
             read("&", "OPERATOR");
             procedure_Bs();
-            build_tree("&", "KEYWORD", 2);
+            buildTree("&", "KEYWORD", 2);
         }
     }
 
@@ -1898,7 +1902,7 @@ public:
         {
             read("not", "KEYWORD");
             procedure_Bp();
-            build_tree("not", "KEYWORD", 1);
+            buildTree("not", "KEYWORD", 1);
         }
         else // Else the rule is, Bs -> Bp
         {
@@ -1925,37 +1929,37 @@ public:
         {
             read(temp, temp2);
             procedure_A();
-            build_tree("gr", "KEYWORD", 2);
+            buildTree("gr", "KEYWORD", 2);
         }
         else if (nextToken.getVal() == "ge" || nextToken.getVal() == ">=") // Bp -> A (’ge’ | ’>=’)
         {
             read(temp, temp2);
             procedure_A();
-            build_tree("ge", "KEYWORD", 2);
+            buildTree("ge", "KEYWORD", 2);
         }
         else if (nextToken.getVal() == "ls" || nextToken.getVal() == "<") // Bp -> A (’ls’ | ’<’ )
         {
             read(temp, temp2);
             procedure_A();
-            build_tree("ls", "KEYWORD", 2);
+            buildTree("ls", "KEYWORD", 2);
         }
         else if (nextToken.getVal() == "le" || nextToken.getVal() == "<=") // Bp -> A (’le’ | ’<=’)
         {
             read(temp, temp2);
             procedure_A();
-            build_tree("le", "KEYWORD", 2);
+            buildTree("le", "KEYWORD", 2);
         }
         else if (nextToken.getVal() == "eq") // Bp -> A ’eq’ A
         {
             read(temp, temp2);
             procedure_A();
-            build_tree("eq", "KEYWORD", 2);
+            buildTree("eq", "KEYWORD", 2);
         }
         else if (nextToken.getVal() == "ne") // Bp -> A ’ne’ A
         {
             read(temp, temp2);
             procedure_A();
-            build_tree("ne", "KEYWORD", 2);
+            buildTree("ne", "KEYWORD", 2);
         }
     }
 
@@ -1977,7 +1981,7 @@ public:
         {
             read("-", "OPERATOR");
             procedure_At();
-            build_tree("neg", "KEYWORD", 1);
+            buildTree("neg", "KEYWORD", 1);
         }
         else
         {
@@ -1990,7 +1994,7 @@ public:
             string temp = nextToken.getVal();
             read(temp, "OPERATOR");
             procedure_At();
-            build_tree(temp, "OPERATOR", 2);
+            buildTree(temp, "OPERATOR", 2);
         }
     }
 
@@ -2008,7 +2012,7 @@ public:
             string temp = nextToken.getVal();
             read(temp, "OPERATOR");
             procedure_Af();
-            build_tree(temp, "OPERATOR", 2);
+            buildTree(temp, "OPERATOR", 2);
         }
     }
 
@@ -2024,7 +2028,7 @@ public:
         {
             read("**", "OPERATOR");
             procedure_Af();
-            build_tree("**", "KEYWORD", 2);
+            buildTree("**", "KEYWORD", 2);
         }
     }
 
@@ -2046,7 +2050,7 @@ public:
             {
                 read(nextToken.getVal(), "IDENTIFIER");
                 procedure_R();
-                build_tree("@", "KEYWORD", 3);
+                buildTree("@", "KEYWORD", 3);
             }
         }
     }
@@ -2061,7 +2065,7 @@ public:
         while (nextToken.getType() == "IDENTIFIER" || nextToken.getType() == "INTEGER" || nextToken.getType() == "STRING" || nextToken.getVal() == "true" || nextToken.getVal() == "false" || nextToken.getVal() == "nil" || nextToken.getVal() == "(" || nextToken.getVal() == "dummy")
         {
             procedure_Rn();
-            build_tree("gamma", "KEYWORD", 2);
+            buildTree("gamma", "KEYWORD", 2);
         }
     }
 
@@ -2084,17 +2088,17 @@ public:
         else if (nextToken.getVal() == "true") // Rn -> ’true’
         {
             read("true", "KEYWORD");
-            build_tree("true", "BOOL", 0);
+            buildTree("true", "BOOL", 0);
         }
         else if (nextToken.getVal() == "false") // Rn -> ’false’
         {
             read("false", "KEYWORD");
-            build_tree("false", "BOOL", 0);
+            buildTree("false", "BOOL", 0);
         }
         else if (nextToken.getVal() == "nil") // Rn -> ’nil’
         {
             read("nil", "KEYWORD");
-            build_tree("nil", "NIL", 0);
+            buildTree("nil", "NIL", 0);
         }
         else if (nextToken.getVal() == "(") // Rn -> ’(’ E ’)’
         {
@@ -2105,7 +2109,7 @@ public:
         else if (nextToken.getVal() == "dummy") // Rn -> ’dummy’
         {
             read("dummy", "KEYWORD");
-            build_tree("dummy", "DUMMY", 0);
+            buildTree("dummy", "DUMMY", 0);
         }
     }
 
@@ -2120,12 +2124,12 @@ public:
         {
             read("within", "KEYWORD");
             procedure_Da();
-            build_tree("within", "KEYWORD", 2);
+            buildTree("within", "KEYWORD", 2);
         }
     }
 
     /*
-    Da -> Dr ( ’and’ Dr )+ 
+    Da -> Dr ( ’and’ Dr )+
        -> Dr ;
     */
     void procedure_Da()
@@ -2141,12 +2145,12 @@ public:
         }
         if (n > 1)
         {
-            build_tree("and", "KEYWORD", n);
+            buildTree("and", "KEYWORD", n);
         }
     }
-    
+
     /*
-    Dr -> ’rec’ Db 
+    Dr -> ’rec’ Db
         -> Db ;
     */
     void procedure_Dr()
@@ -2155,7 +2159,7 @@ public:
         {
             read("rec", "KEYWORD");
             procedure_Db();
-            build_tree("rec", "KEYWORD", 1);
+            buildTree("rec", "KEYWORD", 1);
         }
         else
         {
@@ -2190,11 +2194,11 @@ public:
                 }
                 if (n > 1)
                 {
-                    build_tree(",", "KEYWORD", n);
+                    buildTree(",", "KEYWORD", n);
                 }
                 read("=", "OPERATOR");
                 procedure_E();
-                build_tree("=", "KEYWORD", 2);
+                buildTree("=", "KEYWORD", 2);
             }
             else
             {
@@ -2205,7 +2209,7 @@ public:
                 } while (nextToken.getType() == "IDENTIFIER" || nextToken.getVal() == "(");
                 read("=", "OPERATOR");
                 procedure_E();
-                build_tree("function_form", "KEYWORD", n + 1);
+                buildTree("function_form", "KEYWORD", n + 1);
             }
         }
     }
@@ -2227,7 +2231,7 @@ public:
             if (nextToken.getVal() == ")")
             {
                 read(")", "PUNCTION");
-                build_tree("()", "KEYWORD", 0);
+                buildTree("()", "KEYWORD", 0);
             }
             else
             {
@@ -2253,7 +2257,7 @@ public:
         }
         if (n > 1)
         {
-            build_tree(",", "KEYWORD", n);
+            buildTree(",", "KEYWORD", n);
         }
     }
 };
