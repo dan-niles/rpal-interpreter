@@ -8,14 +8,14 @@ using namespace std;
 class environment
 {
 public:
-	environment *prev;
-	string name;
-	map<tree *, vector<tree *> > boundVar;
+	environment *prev; // Pointer to the previous environment
+	string name; // Name of the environment
+	map<tree *, vector<tree *> > boundVar; // Map of bound variables to their values
 
 	environment()
 	{
-		prev = NULL;
-		name = "env0";
+		prev = NULL; // Default previous environment
+		name = "env0"; // Default name
 	}
 
 	// Copy constructor

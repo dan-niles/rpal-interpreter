@@ -1658,7 +1658,7 @@ public:
                 tree *X = createNode(t->left->left);
                 tree *E = createNode(t->left->left->right);
                 t->left = createNode("lambda", "KEYWORD");
-                t->left->right = E; // do i set the right pointer to null
+                t->left->right = E; 
                 tree *lambda = t->left;
                 lambda->left = X;
                 lambda->left->right = P;
