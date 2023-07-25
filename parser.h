@@ -372,7 +372,7 @@ public:
 
             vector<tree *> delta;
             tree *setOfDeltaArray[200][200];
-            myDelta(t, setOfDeltaArray);
+            deltaFunction(t, setOfDeltaArray);
 
             int size = 0;
             int inner = 0;
@@ -1442,7 +1442,7 @@ public:
         return temp;
     }
 
-    void myDelta(tree *x, tree *(*setOfDelta)[200])
+    void deltaFunction(tree *x, tree *(*setOfDelta)[200])
     {
         static int index = 1;
         static int j = 0;
@@ -1485,7 +1485,7 @@ public:
                 i++;
             j = 0;
 
-            myDelta(x->left->right, setOfDelta);
+            deltaFunction(x->left->right, setOfDelta);
 
             i = myStoredIndex;
             j = tempj;
@@ -1522,20 +1522,20 @@ public:
             int firstIndex = k;
             int lamdaCount = index;
 
-            myDelta(x->left, setOfDelta);
+            deltaFunction(x->left, setOfDelta);
             int diffLc = index - lamdaCount;
 
             while (setOfDelta[i][0] != NULL)
                 i++;
             j = 0;
 
-            myDelta(x->left->right, setOfDelta);
+            deltaFunction(x->left->right, setOfDelta);
 
             while (setOfDelta[i][0] != NULL)
                 i++;
             j = 0;
 
-            myDelta(x->left->right->right, setOfDelta);
+            deltaFunction(x->left->right->right, setOfDelta);
 
             stringstream ss23;
             if (diffLc == 0 || i < lamdaCount)
@@ -1584,20 +1584,20 @@ public:
 
             setOfDelta[i][j++] = tauNode; // putting the tau node and not pushing x
 
-            myDelta(x->left, setOfDelta);
+            deltaFunction(x->left, setOfDelta);
             x = x->left;
             while (x != NULL)
             {
-                myDelta(x->right, setOfDelta);
+                deltaFunction(x->right, setOfDelta);
                 x = x->right;
             }
         }
         else
         {
             setOfDelta[i][j++] = createNode(x->getVal(), x->getType());
-            myDelta(x->left, setOfDelta);
+            deltaFunction(x->left, setOfDelta);
             if (x->left != NULL)
-                myDelta(x->left->right, setOfDelta);
+                deltaFunction(x->left->right, setOfDelta);
         }
     }
 
