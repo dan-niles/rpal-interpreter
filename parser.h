@@ -1073,10 +1073,12 @@ public:
                 string op = nextToken->getVal(); // Get the operator
                 if (isBinaryOperator(nextToken->getVal())) // If token is a binary operator
                 {
-                    tree *node1 = m_stack.top();
+                    tree *node1 = m_stack.top(); // Get the first operand
                     m_stack.pop();
-                    tree *node2 = m_stack.top();
+
+                    tree *node2 = m_stack.top(); // Get the second operand
                     m_stack.pop();
+
                     if (node1->getType() == "INTEGER" && node2->getType() == "INTEGER")
                     {
                         int num1;
@@ -1089,6 +1091,8 @@ public:
 
                         int res = 0;
                         double resPow;
+
+                        // Perform the operation and create a node with the result
                         if (op == "+")
                         {
                             res = num1 + num2;
@@ -1266,11 +1270,8 @@ public:
                         }
                     }
                 }
-                else
-                {
-                    cout << " WTF op " << nextToken->getVal() << endl;
-                }
             }
+            // If beta is on top of control stack
             else if (nextToken->getVal() == "beta")
             {
                 tree *truthVal = m_stack.top();
