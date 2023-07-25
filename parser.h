@@ -383,7 +383,7 @@ public:
             while (setOfDeltaArray[size][0] != NULL)
                 size++;
 
-            vector<vector<tree *>> setOfDelta;
+            vector<vector<tree *> > setOfDelta;
             for (int i = 0; i < size; i++)
             {
                 vector<tree *> temp;
@@ -400,7 +400,7 @@ public:
     }
 
     // Control Stack Environment Machine
-    void cse_machine(vector<vector<tree *>> &controlStructure)
+    void cse_machine(vector<vector<tree *> > &controlStructure)
     {
         stack<tree *> control;                   // Stack for control structure
         stack<tree *> m_stack;                   // Stack for operands
@@ -525,7 +525,7 @@ public:
                             nodeValVector.push_back(boundValues.at(i));
 
                             // Insert the bound variable and its value to the environment
-                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVariables.at(i), nodeValVector));
+                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVariables.at(i), nodeValVector));
                         }
                     }
                     else if (m_stack.top()->getVal() == "lambda") // If Rand is lambda
@@ -549,7 +549,7 @@ public:
                         }
 
                         // Insert the bound variable and its value to the environment
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, nodeValVector));
                     }
                     else if (m_stack.top()->getVal() == "Conc") // If Rand is Conc
                     {
@@ -572,7 +572,7 @@ public:
                         }
 
                         // Insert the bound variable and its value to the environment
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, nodeValVector));
                     }
                     else if (m_stack.top()->getVal() == "eta") // If Rand is eta
                     {
@@ -595,7 +595,7 @@ public:
                         }
 
                         // Insert the bound variable and its value to the environment
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, nodeValVector));
                     }
                     else // If Rand is an Int
                     {
@@ -606,7 +606,7 @@ public:
                         nodeValVector.push_back(bindVarVal);
 
                         // Insert the bound variable and its value to the environment
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, nodeValVector));
                     }
 
                     currEnv = newEnv;
@@ -883,7 +883,7 @@ public:
                 }
                 else if (machineTop->getVal() == "Stem") // Get first character of string
                 {
-                    m_stack.pop(); // Pop Stem token
+                    m_stack.pop();                      // Pop Stem token
                     tree *isNextString = m_stack.top(); // Get next item in stack
 
                     if (isNextString->getVal() == "")
@@ -898,7 +898,7 @@ public:
                 }
                 else if (machineTop->getVal() == "Stern") // Get remaining characters other the first character
                 {
-                    m_stack.pop(); // Pop Stern token
+                    m_stack.pop();                      // Pop Stern token
                     tree *isNextString = m_stack.top(); // Get next item in stack
 
                     if (isNextString->getVal() == "")
@@ -965,7 +965,7 @@ public:
                     }
                 }
             }
-            else if (nextToken->getVal().substr(0, 3) == "env")  // If env token is on top of control stack (CSE Rule 5)
+            else if (nextToken->getVal().substr(0, 3) == "env") // If env token is on top of control stack (CSE Rule 5)
             {
                 stack<tree *> removeFromMachineToPutBack;
                 if (m_stack.top()->getVal() == "lambda") // Pop lambda token and its parameters
@@ -1017,7 +1017,7 @@ public:
                 int flag = 0;
                 while (temp != NULL)
                 {
-                    map<tree *, vector<tree *>>::iterator itr = temp->boundVar.begin();
+                    map<tree *, vector<tree *> >::iterator itr = temp->boundVar.begin();
                     while (itr != temp->boundVar.end())
                     {
                         if (nextToken->getVal() == itr->first->getVal())
@@ -1068,9 +1068,9 @@ public:
                     return;
             }
             // If a binary or unary operator is on top of the control stack (CSE Rule 6 and CSE Rule 7)
-            else if (isBinaryOperator(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not") 
+            else if (isBinaryOperator(nextToken->getVal()) || nextToken->getVal() == "neg" || nextToken->getVal() == "not")
             {
-                string op = nextToken->getVal(); // Get the operator
+                string op = nextToken->getVal();           // Get the operator
                 if (isBinaryOperator(nextToken->getVal())) // If token is a binary operator
                 {
                     tree *node1 = m_stack.top(); // Get the first operand
@@ -1283,7 +1283,7 @@ public:
                 tree *thenIndex = control.top(); // Get the index of the then statement
                 control.pop();
 
-                int index; 
+                int index;
                 if (boolVal->getVal() == "true") // If the boolean value is true, then go to the then statement
                 {
                     istringstream is1(thenIndex->getVal());
@@ -1296,9 +1296,8 @@ public:
                 }
 
                 vector<tree *> nextDelta = controlStructure.at(index); // Get the next control structure from index
-                for (int i = 0; i < nextDelta.size(); i++) // Push each element of the next control structure to the control stack
+                for (int i = 0; i < nextDelta.size(); i++)             // Push each element of the next control structure to the control stack
                     control.push(nextDelta.at(i));
-                
             }
             // If tau is on top of control stack (CSE Rule 9)
             else if (nextToken->getVal() == "tau")
@@ -1319,17 +1318,17 @@ public:
                     m_stack.pop();
 
                     tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the environment in which it was created
-                    m_stack.pop(); // popped the evn in which it was created
+                    m_stack.pop();                                                                 // popped the evn in which it was created
 
                     tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the variable bounded to lambda
-                    m_stack.pop(); // bound variable of lambda
+                    m_stack.pop();                                                                  // bound variable of lambda
 
                     tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the index of next control structure
-                    m_stack.pop(); // next delta to be opened
-                    
+                    m_stack.pop();                                                                        // next delta to be opened
+
                     // Create a lambda tuple and set parameters
-                    tree *myLambda = createNode("lamdaTuple", "lamdaTuple"); 
-                    myLambda->left = nextDeltaIndex; 
+                    tree *myLambda = createNode("lamdaTuple", "lamdaTuple");
+                    myLambda->left = nextDeltaIndex;
                     nextDeltaIndex->right = boundVar;
                     boundVar->right = prevEnv;
                     prevEnv->right = lamda;
@@ -1345,20 +1344,20 @@ public:
 
                 for (int i = 1; i < numOfItems; i++) // For each item in the tuple
                 {
-                    tree *temp = m_stack.top(); // Get the next item in the stack
+                    tree *temp = m_stack.top();     // Get the next item in the stack
                     if (temp->getVal() == "lambda") // If the next item is a lambda token
                     {
                         tree *lamda = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop lambda
                         m_stack.pop();
 
                         tree *prevEnv = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the environment in which it was created
-                        m_stack.pop(); 
+                        m_stack.pop();
 
                         tree *boundVar = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the variable bounded to lambda
-                        m_stack.pop(); 
+                        m_stack.pop();
 
-                        tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType());   // Pop the index of next control structure
-                        m_stack.pop(); 
+                        tree *nextDeltaIndex = createNode(m_stack.top()->getVal(), m_stack.top()->getType()); // Pop the index of next control structure
+                        m_stack.pop();
 
                         tree *myLambda = createNode("lamdaTuple", "lamdaTuple");
 
