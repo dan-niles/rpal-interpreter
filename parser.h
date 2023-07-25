@@ -13,13 +13,13 @@
 
 using namespace std;
 
-stack<tree *> st;
-
-string keys[] = {"let", "fn", "in", "where", "aug", "or", "not", "true", "false", "nil", "dummy", "within",
-                 "and", "rec", "gr", "ge", "ls", "le", "eq", "ne"};
+stack<tree *> st; // Stack for syntax tree
 
 char operators[] = {'+', '-', '*', '<', '>', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '#', '%',
                     '^', '_', '[', ']', '{', '}', '"', '`', '?'};
+
+string keys[] = {"let", "fn", "in", "where", "aug", "or", "not", "true", "false", "nil", "dummy", "within",
+                 "and", "rec", "gr", "ge", "ls", "le", "eq", "ne"};
 
 class parser
 {
@@ -379,7 +379,7 @@ public:
             while (setOfDeltaArray[size][0] != NULL)
                 size++;
 
-            vector<vector<tree *> > setOfDelta;
+            vector<vector<tree *>> setOfDelta;
             for (int i = 0; i < size; i++)
             {
                 vector<tree *> temp;
@@ -396,7 +396,7 @@ public:
     }
 
     // Control Stack Environment Machine
-    void cse_machine(vector<vector<tree *> > &controlStructure)
+    void cse_machine(vector<vector<tree *>> &controlStructure)
     {
         stack<tree *> control;                   // Stack for control structure
         stack<tree *> m_stack;                   // Stack for operands
@@ -477,37 +477,36 @@ public:
 
                     newEnv->name = "env" + str;
 
-                    if (currEnvIndex > 2000)
+                    if (currEnvIndex > 2000) // Avoid stack overflow
                         return;
 
                     stack<environment *> tempEnv = stackOfEnvironment;
 
-                    while (tempEnv.top()->name != prevEnv->getVal())
-                    {
+                    while (tempEnv.top()->name != prevEnv->getVal()) // Get the previous environment node
                         tempEnv.pop();
-                    }
-                    newEnv->prev = tempEnv.top();
 
-                    if (boundVar->getVal() == "," && m_stack.top()->getVal() == "tau")
+                    newEnv->prev = tempEnv.top(); // Set the previous environment node
+
+                    // Bounding variables to the environment
+                    if (boundVar->getVal() == "," && m_stack.top()->getVal() == "tau") // If Rand is tau
                     {
-                        // m_stack.pop()
-                        vector<tree *> boundVariables;
-                        tree *leftOfComa = boundVar->left;
+                        vector<tree *> boundVariables;     // Vector of bound variables
+                        tree *leftOfComa = boundVar->left; // Get the left of the comma
                         while (leftOfComa != NULL)
                         {
                             boundVariables.push_back(createNode(leftOfComa));
                             leftOfComa = leftOfComa->right;
                         }
 
-                        vector<tree *> boundValues;
-                        tree *tau = m_stack.top(); // popping the tau;
+                        vector<tree *> boundValues; // Vector of bound values
+                        tree *tau = m_stack.top();  // Pop the tau token
                         m_stack.pop();
 
-                        tree *tauLeft = tau->left;
+                        tree *tauLeft = tau->left; // Get the left of the tau
                         while (tauLeft != NULL)
                         {
                             boundValues.push_back(tauLeft);
-                            tauLeft = tauLeft->right;
+                            tauLeft = tauLeft->right; // Get the right of the tau
                         }
 
                         for (int i = 0; i < boundValues.size(); i++)
@@ -518,14 +517,16 @@ public:
                                 printTuple(boundValues.at(i), res);
                             }
 
-                            vector<tree *> listOfNodeVal;
-                            listOfNodeVal.push_back(boundValues.at(i));
-                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVariables.at(i), listOfNodeVal));
+                            vector<tree *> nodeValVector;
+                            nodeValVector.push_back(boundValues.at(i));
+
+                            // Insert the bound variable and its value to the environment
+                            newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVariables.at(i), nodeValVector));
                         }
                     }
-                    else if (m_stack.top()->getVal() == "eta")
+                    else if (m_stack.top()->getVal() == "lambda") // If Rand is lambda
                     {
-                        vector<tree *> listOfNodeVal;
+                        vector<tree *> nodeValVector;
                         stack<tree *> temp;
                         int j = 0;
                         while (j < 4)
@@ -540,35 +541,15 @@ public:
                             tree *fromStack;
                             fromStack = temp.top();
                             temp.pop();
-                            listOfNodeVal.push_back(fromStack);
+                            nodeValVector.push_back(fromStack);
                         }
 
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
+                        // Insert the bound variable and its value to the environment
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
                     }
-                    else if (m_stack.top()->getVal() == "lambda")
+                    else if (m_stack.top()->getVal() == "Conc") // If Rand is Conc
                     {
-                        vector<tree *> listOfNodeVal;
-                        stack<tree *> temp;
-                        int j = 0;
-                        while (j < 4)
-                        {
-                            temp.push(m_stack.top());
-                            m_stack.pop();
-                            j++;
-                        }
-
-                        while (!temp.empty())
-                        {
-                            tree *fromStack;
-                            fromStack = temp.top();
-                            temp.pop();
-                            listOfNodeVal.push_back(fromStack);
-                        }
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
-                    }
-                    else if (m_stack.top()->getVal() == "Conc")
-                    {
-                        vector<tree *> listOfNodeVal;
+                        vector<tree *> nodeValVector;
                         stack<tree *> temp;
                         int j = 0;
                         while (j < 2)
@@ -583,18 +564,45 @@ public:
                             tree *fromStack;
                             fromStack = temp.top();
                             temp.pop();
-                            listOfNodeVal.push_back(fromStack);
+                            nodeValVector.push_back(fromStack);
                         }
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
+
+                        // Insert the bound variable and its value to the environment
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
                     }
-                    else
+                    else if (m_stack.top()->getVal() == "eta") // If Rand is eta
+                    {
+                        vector<tree *> nodeValVector;
+                        stack<tree *> temp;
+                        int j = 0;
+                        while (j < 4)
+                        {
+                            temp.push(m_stack.top());
+                            m_stack.pop();
+                            j++;
+                        }
+
+                        while (!temp.empty())
+                        {
+                            tree *fromStack;
+                            fromStack = temp.top();
+                            temp.pop();
+                            nodeValVector.push_back(fromStack);
+                        }
+
+                        // Insert the bound variable and its value to the environment
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
+                    }
+                    else // If Rand is an Int
                     {
                         tree *bindVarVal = m_stack.top();
-
                         m_stack.pop();
-                        vector<tree *> listOfNodeVal;
-                        listOfNodeVal.push_back(bindVarVal);
-                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *> >(boundVar, listOfNodeVal));
+
+                        vector<tree *> nodeValVector;
+                        nodeValVector.push_back(bindVarVal);
+
+                        // Insert the bound variable and its value to the environment
+                        newEnv->boundVar.insert(std::pair<tree *, vector<tree *>>(boundVar, nodeValVector));
                     }
 
                     currEnv = newEnv;
@@ -668,10 +676,7 @@ public:
                         m_stack.push(etaNode);     // eta completed 4
                     }
                     else
-                    {
-                        cout << " PROBLEM WITH RECURSSION ******** " << m_stack.top()->getVal() << endl;
                         return;
-                    }
                 }
                 else if (machineTop->getVal() == "eta")
                 {
@@ -996,7 +1001,7 @@ public:
                 while (temp != NULL)
                 {
 
-                    map<tree *, vector<tree *> >::iterator itr = temp->boundVar.begin();
+                    map<tree *, vector<tree *>>::iterator itr = temp->boundVar.begin();
                     while (itr != temp->boundVar.end())
                     {
                         if (nextToken->getVal() == itr->first->getVal())
