@@ -579,7 +579,7 @@ public:
         if (x == NULL)
             return;
 
-        if (x->getVal() == "lambda")
+        if (x->getVal() == "lambda") // If node is lambda
         {
             std::stringstream ss;
 
@@ -618,7 +618,7 @@ public:
             i = myStoredIndex;
             j = tempj;
         }
-        else if (x->getVal() == "->")
+        else if (x->getVal() == "->") // If node is conditional node
         {
             int myStoredIndex = i;
             int tempj = j;
@@ -693,7 +693,7 @@ public:
             }
             betaCount += 2;
         }
-        else if (x->getVal() == "tau")
+        else if (x->getVal() == "tau") // If node is tau node
         {
             tree *tauLeft = x->left;
             int numOfChildren = 0;
