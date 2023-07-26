@@ -113,7 +113,7 @@ public:
     {
         if (val != nextToken.getVal() || type != nextToken.getType())
         {
-            cout << "Expected : " << val << " - " << type << " but found : " << nextToken.getVal() << " - " << nextToken.getType() << endl;
+            cout << "Parse error: Expected " << "\"" << val << "\"" << ", but " << "\"" << nextToken.getVal() << "\"" << " was there" << endl;
             exit(0);
         }
 
@@ -729,14 +729,16 @@ public:
                         tree *getTau = m_stack.top();
 
                         stack<tree *> res;
-                        arrangeTuple(getTau, res);
-                        stack<tree *> getRev;
+                        arrangeTuple(getTau, res); // Arrange the tuple into a stack
+
+                        stack<tree *> getRev; // Reverse the stack
                         while (!res.empty())
                         {
                             getRev.push(res.top());
                             res.pop();
                         }
-                        cout << "(";
+
+                        cout << "("; // Print the tuple
                         while (getRev.size() > 1)
                         {
                             if (getRev.top()->getType() == "STRING")
@@ -1123,7 +1125,7 @@ public:
                         else if (op == "/")
                         {
                             if (num2 == 0)
-                                cout << " divide by zero " << endl;
+                                cout << "Exception: STATUS_INTEGER_DIVIDE_BY_ZERO" << endl;
                             res = num1 / num2;
                             stringstream ss;
                             ss << res;
@@ -2075,7 +2077,7 @@ public:
             read("@", "OPERATOR"); // read a type IDENTIFIER
             if (nextToken.getType() != "IDENTIFIER")
             {
-                cout << " unexpected token ";
+                cout << "Exception: UNEXPECTED_TOKEN";
             }
             else
             {
