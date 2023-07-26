@@ -1092,7 +1092,7 @@ public:
                         double resPow;
 
                         // Perform the operation and create a node with the result
-                        if (op == "+")
+                        if (op == "+") // Addition
                         {
                             res = num1 + num2;
                             stringstream ss;
@@ -1101,7 +1101,7 @@ public:
                             tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
-                        else if (op == "-")
+                        else if (op == "-") // Subtraction
                         {
                             res = num1 - num2;
                             stringstream ss;
@@ -1110,7 +1110,7 @@ public:
                             tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
-                        else if (op == "*")
+                        else if (op == "*") // Multiplication
                         {
                             res = num1 * num2;
                             stringstream ss;
@@ -1119,10 +1119,10 @@ public:
                             tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
-                        else if (op == "/")
+                        else if (op == "/") // Division
                         {
-                            if (num2 == 0)
-                                cout << "Exception: STATUS_INTEGER_DIVIDE_BY_ZERO" << endl;
+                            if (num2 == 0) // If division by zero
+                                cout << "Exception: STATUS_INTEGER_DIVIDE_BY_ZERO" << endl; 
                             res = num1 / num2;
                             stringstream ss;
                             ss << res;
@@ -1130,7 +1130,7 @@ public:
                             tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
-                        else if (op == "**")
+                        else if (op == "**") // Power
                         {
                             resPow = pow((double)num1, (double)num2);
                             stringstream ss;
@@ -1139,46 +1139,46 @@ public:
                             tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
-                        else if (op == "gr" || op == ">")
+                        else if (op == "gr" || op == ">") // Greater than
                         {
                             string resStr = num1 > num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
                             m_stack.push(res);
                         }
-                        else if (op == "ge" || op == ">=")
+                        else if (op == "ge" || op == ">=") // Greater than or equal to
                         {
                             string resStr = num1 >= num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
                             m_stack.push(res);
                         }
-                        else if (op == "ls" || op == "<")
+                        else if (op == "ls" || op == "<") // Less than
                         {
                             string resStr = num1 < num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
                             m_stack.push(res);
                         }
-                        else if (op == "le" || op == "<=")
+                        else if (op == "le" || op == "<=") // Less than or equal to
                         {
                             string resStr = num1 <= num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
                             m_stack.push(res);
                         }
-                        else if (op == "eq" || op == "=")
+                        else if (op == "eq" || op == "=") // Equal
                         {
                             string resStr = num1 == num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
                             m_stack.push(res);
                         }
-                        else if (op == "ne" || op == "><")
+                        else if (op == "ne" || op == "><") // Not equal
                         {
                             string resStr = num1 != num2 ? "true" : "false";
                             tree *res = createNode(resStr, "bool");
                             m_stack.push(res);
                         }
                     }
-                    else if (node1->getType() == "STR" && node2->getType() == "STR")
+                    else if (node1->getType() == "STR" && node2->getType() == "STR") // If both operands are strings
                     {
-                        if (op == "ne" || op == "<>")
+                        if (op == "ne" || op == "<>") 
                         {
                             string resStr = node1->getVal() != node2->getVal() ? "true" : "false";
                             tree *res = createNode(resStr, "BOOL");
@@ -1191,6 +1191,7 @@ public:
                             m_stack.push(res);
                         }
                     }
+                    // If both operands are boolean values
                     else if ((node1->getVal() == "true" || node1->getVal() == "false") && (node2->getVal() == "false" || node2->getVal() == "true"))
                     {
                         if (op == "ne" || op == "<>")
@@ -1239,9 +1240,10 @@ public:
                         }
                     }
                 }
+                // If unary operator
                 else if (op == "neg" || op == "not")
                 {
-                    if (op == "neg")
+                    if (op == "neg") // If negation
                     {
                         tree *node1 = m_stack.top();
                         m_stack.pop();
@@ -1255,7 +1257,7 @@ public:
                         tree *resStr = createNode(str, "INT");
                         m_stack.push(resStr);
                     }
-                    else if (op == "not" && (m_stack.top()->getVal() == "true" || m_stack.top()->getVal() == "false"))
+                    else if (op == "not" && (m_stack.top()->getVal() == "true" || m_stack.top()->getVal() == "false")) // If not
                     {
                         if (m_stack.top()->getVal() == "true")
                         {
