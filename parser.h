@@ -120,7 +120,7 @@ public:
             exit(0);
         }
 
-        if (type == "IDENTIFIER" || type == "INTEGER" || type == "STRING") // If the token is an identifier, integer or string
+        if (type == "ID" || type == "INT" || type == "STR") // If the token is an identifier, integer or string
             buildTree(val, type, 0);
 
         nextToken = getToken(readnew); // Get the next token
@@ -205,7 +205,7 @@ public:
                 }
                 index = i;
                 t.setVal(num);
-                t.setType("INTEGER");
+                t.setType("INT");
                 return t;
             }
             // Check if character is an alphabet letter
@@ -228,7 +228,7 @@ public:
                 {
                     index = i;
                     t.setVal(id);
-                    t.setType("IDENTIFIER");
+                    t.setType("ID");
                     return t;
                 }
             }
@@ -304,7 +304,7 @@ public:
                 }
                 index = i;
                 t.setVal(isString);
-                t.setType("STRING");
+                t.setType("STR");
                 return t;
             }
             else if (read[i] == ')' || read[i] == '(' || read[i] == ';' || read[i] == ',')
@@ -432,7 +432,7 @@ public:
                 nextToken->setType("tau");
             }
 
-            if (nextToken->getType() == "INTEGER" || nextToken->getType() == "STRING" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || nextToken->getVal() == "Conc" || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil")
+            if (nextToken->getType() == "INT" || nextToken->getType() == "STR" || nextToken->getVal() == "lambda" || nextToken->getVal() == "YSTAR" || nextToken->getVal() == "Print" || nextToken->getVal() == "Isinteger" || nextToken->getVal() == "Istruthvalue" || nextToken->getVal() == "Isstring" || nextToken->getVal() == "Istuple" || nextToken->getVal() == "Isfunction" || nextToken->getVal() == "Isdummy" || nextToken->getVal() == "Stem" || nextToken->getVal() == "Stern" || nextToken->getVal() == "Conc" || nextToken->getType() == "BOOL" || nextToken->getType() == "NIL" || nextToken->getType() == "DUMMY" || nextToken->getVal() == "Order" || nextToken->getVal() == "nil")
             {
                 if (nextToken->getVal() == "lambda")
                 {
@@ -738,13 +738,13 @@ public:
                         cout << "("; // Print the tuple
                         while (getRev.size() > 1)
                         {
-                            if (getRev.top()->getType() == "STRING")
+                            if (getRev.top()->getType() == "STR")
                                 cout << addSpaces(getRev.top()->getVal()) << ", ";
                             else
                                 cout << getRev.top()->getVal() << ", ";
                             getRev.pop();
                         }
-                        if (getRev.top()->getType() == "STRING")
+                        if (getRev.top()->getType() == "STR")
                             cout << addSpaces(getRev.top()->getVal()) << ")";
                         else
                             cout << getRev.top()->getVal() << ")";
@@ -768,7 +768,7 @@ public:
                     }
                     else // If the next item is a string or integer
                     {
-                        if (m_stack.top()->getType() == "STRING")
+                        if (m_stack.top()->getType() == "STR")
                             cout << addSpaces(m_stack.top()->getVal());
                         else
                             cout << m_stack.top()->getVal();
@@ -781,7 +781,7 @@ public:
                     tree *isNextInt = m_stack.top(); // Get next item in stack
                     m_stack.pop();
 
-                    if (isNextInt->getType() == "INTEGER")
+                    if (isNextInt->getType() == "INT")
                     {
                         tree *resNode = createNode("true", "boolean");
                         m_stack.push(resNode);
@@ -817,7 +817,7 @@ public:
                     tree *isNextString = m_stack.top(); // Get next item in stack
                     m_stack.pop();
 
-                    if (isNextString->getType() == "STRING")
+                    if (isNextString->getType() == "STR")
                     {
                         tree *resNode = createNode("true", "BOOL");
                         m_stack.push(resNode);
@@ -888,11 +888,11 @@ public:
                     if (isNextString->getVal() == "")
                         return;
 
-                    if (isNextString->getType() == "STRING")
+                    if (isNextString->getType() == "STR")
                     {
                         string strRes = "'" + isNextString->getVal().substr(1, 1) + "'"; // Get first character
                         m_stack.pop();
-                        m_stack.push(createNode(strRes, "STRING"));
+                        m_stack.push(createNode(strRes, "STR"));
                     }
                 }
                 else if (machineTop->getVal() == "Stern") // Get remaining characters other the first character
@@ -903,11 +903,11 @@ public:
                     if (isNextString->getVal() == "")
                         return;
 
-                    if (isNextString->getType() == "STRING")
+                    if (isNextString->getType() == "STR")
                     {
                         string strRes = "'" + isNextString->getVal().substr(2, isNextString->getVal().length() - 3) + "'"; // Get remaining characters
                         m_stack.pop();
-                        m_stack.push(createNode(strRes, "STRING"));
+                        m_stack.push(createNode(strRes, "STR"));
                     }
                 }
                 else if (machineTop->getVal() == "Order") // Get number of items in tuple
@@ -935,7 +935,7 @@ public:
                     stringstream ss11;
                     ss11 << numOfItems;
                     string str34 = ss11.str();
-                    tree *orderNode = createNode(str34, "INTEGER");
+                    tree *orderNode = createNode(str34, "INT");
                     m_stack.push(orderNode);
                 }
                 else if (machineTop->getVal() == "Conc") // Concatenate two strings
@@ -948,11 +948,11 @@ public:
 
                     tree *secondString = m_stack.top(); // Get second string
 
-                    if (secondString->getType() == "STRING" || (secondString->getType() == "STRING" && secondString->left != NULL && secondString->left->getVal() == "true"))
+                    if (secondString->getType() == "STR" || (secondString->getType() == "STR" && secondString->left != NULL && secondString->left->getVal() == "true"))
                     {
                         m_stack.pop();
                         string res = "'" + firstString->getVal().substr(1, firstString->getVal().length() - 2) + secondString->getVal().substr(1, secondString->getVal().length() - 2) + "'";
-                        tree *resNode = createNode(res, "STRING");
+                        tree *resNode = createNode(res, "STR");
                         m_stack.push(resNode);
                         control.pop();
                     }
@@ -1010,7 +1010,7 @@ public:
                 }
             }
             // If any variables are on top of the control stack
-            else if (nextToken->getType() == "IDENTIFIER" && nextToken->getVal() != "Print" && nextToken->getVal() != "Isinteger" && nextToken->getVal() != "Istruthvalue" && nextToken->getVal() != "Isstring" && nextToken->getVal() != "Istuple" && nextToken->getVal() != "Isfunction" && nextToken->getVal() != "Isdummy" && nextToken->getVal() != "Stem" && nextToken->getVal() != "Stern" && nextToken->getVal() != "Conc")
+            else if (nextToken->getType() == "ID" && nextToken->getVal() != "Print" && nextToken->getVal() != "Isinteger" && nextToken->getVal() != "Istruthvalue" && nextToken->getVal() != "Isstring" && nextToken->getVal() != "Istuple" && nextToken->getVal() != "Isfunction" && nextToken->getVal() != "Isdummy" && nextToken->getVal() != "Stem" && nextToken->getVal() != "Stern" && nextToken->getVal() != "Conc")
             {
                 environment *temp = currEnv;
                 int flag = 0;
@@ -1078,7 +1078,7 @@ public:
                     tree *node2 = m_stack.top(); // Get the second operand
                     m_stack.pop();
 
-                    if (node1->getType() == "INTEGER" && node2->getType() == "INTEGER")
+                    if (node1->getType() == "INT" && node2->getType() == "INT")
                     {
                         int num1;
                         int num2;
@@ -1098,7 +1098,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INTEGER");
+                            tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
                         else if (op == "-")
@@ -1107,7 +1107,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INTEGER");
+                            tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
                         else if (op == "*")
@@ -1116,7 +1116,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INTEGER");
+                            tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
                         else if (op == "/")
@@ -1127,7 +1127,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INTEGER");
+                            tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
                         else if (op == "**")
@@ -1136,7 +1136,7 @@ public:
                             stringstream ss;
                             ss << res;
                             string str = ss.str();
-                            tree *res = createNode(str, "INTEGER");
+                            tree *res = createNode(str, "INT");
                             m_stack.push(res);
                         }
                         else if (op == "gr" || op == ">")
@@ -1176,7 +1176,7 @@ public:
                             m_stack.push(res);
                         }
                     }
-                    else if (node1->getType() == "STRING" && node2->getType() == "STRING")
+                    else if (node1->getType() == "STR" && node2->getType() == "STR")
                     {
                         if (op == "ne" || op == "<>")
                         {
@@ -1252,7 +1252,7 @@ public:
                         stringstream ss;
                         ss << res;
                         string str = ss.str();
-                        tree *resStr = createNode(str, "INTEGER");
+                        tree *resStr = createNode(str, "INT");
                         m_stack.push(resStr);
                     }
                     else if (op == "not" && (m_stack.top()->getVal() == "true" || m_stack.top()->getVal() == "false"))
@@ -1832,7 +1832,7 @@ public:
             {
                 procedure_Vb();
                 n++;
-            } while (nextToken.getType() == "IDENTIFIER" || nextToken.getVal() == "(");
+            } while (nextToken.getType() == "ID" || nextToken.getVal() == "(");
             read(".", "OPERATOR");
             procedure_E();
 
@@ -2074,14 +2074,14 @@ public:
         procedure_R();
         while (nextToken.getVal() == "@")
         {
-            read("@", "OPERATOR"); // read a type IDENTIFIER
-            if (nextToken.getType() != "IDENTIFIER")
+            read("@", "OPERATOR"); // read a type ID
+            if (nextToken.getType() != "ID")
             {
                 cout << "Exception: UNEXPECTED_TOKEN";
             }
             else
             {
-                read(nextToken.getVal(), "IDENTIFIER");
+                read(nextToken.getVal(), "ID");
                 procedure_R();
                 buildTree("@", "KEYWORD", 3);
             }
@@ -2095,7 +2095,7 @@ public:
     void procedure_R()
     {
         procedure_Rn();
-        while (nextToken.getType() == "IDENTIFIER" || nextToken.getType() == "INTEGER" || nextToken.getType() == "STRING" || nextToken.getVal() == "true" || nextToken.getVal() == "false" || nextToken.getVal() == "nil" || nextToken.getVal() == "(" || nextToken.getVal() == "dummy")
+        while (nextToken.getType() == "ID" || nextToken.getType() == "INT" || nextToken.getType() == "STR" || nextToken.getVal() == "true" || nextToken.getVal() == "false" || nextToken.getVal() == "nil" || nextToken.getVal() == "(" || nextToken.getVal() == "dummy")
         {
             procedure_Rn();
             buildTree("gamma", "KEYWORD", 2);
@@ -2103,9 +2103,9 @@ public:
     }
 
     /*
-    Rn -> ’<IDENTIFIER>’
-        -> ’<INTEGER>’
-        -> ’<STRING>’
+    Rn -> ’<ID>’
+        -> ’<INT>’
+        -> ’<STR>’
         -> ’true’
         -> ’false’
         -> ’nil’
@@ -2114,7 +2114,7 @@ public:
     */
     void procedure_Rn()
     {
-        if (nextToken.getType() == "IDENTIFIER" || nextToken.getType() == "INTEGER" || nextToken.getType() == "STRING") // Rn -> ’<IDENTIFIER>’ | ’<INTEGER>’ | ’<STRING>’
+        if (nextToken.getType() == "ID" || nextToken.getType() == "INT" || nextToken.getType() == "STR") // Rn -> ’<ID>’ | ’<INT>’ | ’<STR>’
         {
             read(nextToken.getVal(), nextToken.getType());
         }
@@ -2202,7 +2202,7 @@ public:
 
     /*
    Db -> Vl ’=’ E => ’=’
-      -> ’<IDENTIFIER>’ Vb+ ’=’ E => ’fcn_form’
+      -> ’<ID>’ Vb+ ’=’ E => ’fcn_form’
       -> ’(’ D ’)’ ;
     */
     void procedure_Db()
@@ -2213,16 +2213,16 @@ public:
             procedure_D();
             read(")", "PUNCTION");
         }
-        else if (nextToken.getType() == "IDENTIFIER")
+        else if (nextToken.getType() == "ID")
         {
-            read(nextToken.getVal(), "IDENTIFIER");
+            read(nextToken.getVal(), "ID");
             int n = 1;
             if (nextToken.getVal() == "=" || nextToken.getVal() == ",")
             {
                 while (nextToken.getVal() == ",")
                 {
                     read(",", "PUNCTION");
-                    read(nextToken.getVal(), "IDENTIFIER");
+                    read(nextToken.getVal(), "ID");
                     n++;
                 }
                 if (n > 1)
@@ -2239,7 +2239,7 @@ public:
                 {
                     procedure_Vb();
                     n++;
-                } while (nextToken.getType() == "IDENTIFIER" || nextToken.getVal() == "(");
+                } while (nextToken.getType() == "ID" || nextToken.getVal() == "(");
                 read("=", "OPERATOR");
                 procedure_E();
                 buildTree("function_form", "KEYWORD", n + 1);
@@ -2248,15 +2248,15 @@ public:
     }
 
     /*
-    Vb -> ’<IDENTIFIER>’
+    Vb -> ’<ID>’
         -> ’(’ Vl ’)’
         -> ’(’ ’)’
     */
     void procedure_Vb()
     {
-        if (nextToken.getType() == "IDENTIFIER")
+        if (nextToken.getType() == "ID")
         {
-            read(nextToken.getVal(), "IDENTIFIER");
+            read(nextToken.getVal(), "ID");
         }
         else if (nextToken.getVal() == "(")
         {
@@ -2275,17 +2275,17 @@ public:
     }
 
     /*
-    Vl -> ’<IDENTIFIER>’ list ’,’
+    Vl -> ’<ID>’ list ’,’
     */
     void procedure_Vl()
     {
         int n = 1;
-        read(nextToken.getVal(), "IDENTIFIER");
+        read(nextToken.getVal(), "ID");
 
         while (nextToken.getVal() == ",")
         {
             read(",", "PUNCTION");
-            read(nextToken.getVal(), "IDENTIFIER");
+            read(nextToken.getVal(), "ID");
             n++;
         }
         if (n > 1)
