@@ -70,16 +70,17 @@ tree *createNode(tree *x)
 	return t;
 }
 
-// Print abstact syntax tree
+// Print syntax tree
 void tree::print_tree(int no_of_dots)
 {
 	int n = 0;
-	while (n < no_of_dots)
+	while (n < no_of_dots) 
 	{
 		cout << ".";
 		n++;
 	}
 
+	// If node type is ID, STR or INT, print <type:val>
 	if (type == "ID" || type == "STR" || type == "INT")
 	{
 		cout << "<";
@@ -87,20 +88,24 @@ void tree::print_tree(int no_of_dots)
 		cout << ":";
 	}
 
+	// If node type is BOOL, NIL or DUMMY, print <val>
 	if (type == "BOOL" || type == "NIL" || type == "DUMMY")
 		cout << "<";
 
 	cout << val;
 
+	// If node type is ID, STR or INT, print >
 	if (type == "ID" || type == "STR" || type == "INT")
 		cout << ">";
 
+	// If node type is BOOL, NIL or DUMMY, print >
 	if (type == "BOOL" || type == "NIL" || type == "DUMMY")
 		cout << ">";
 
 	cout << endl;
 
-	if (left != NULL)
+	// Print left and right subtrees
+	if (left != NULL)	
 		left->print_tree(no_of_dots + 1);
 
 	if (right != NULL)
