@@ -16,15 +16,10 @@ int main(int argc, const char **argv)
         if (argc == 3) // Check if AST or ST flag is present
         {
             argv_idx = 2;
-            if (strcmp(argv[1], "-ast") == 0)
+            if (strcmp(argv[1], "-ast") == 0) // Check if AST flag is present
                 ast_flag = 1;
-            else if (strcmp(argv[2], "-st") == 0)
+            else if (strcmp(argv[1], "-st") == 0) // Check if ST flag is present
                 ast_flag = 2;
-            else
-            {
-                cout << " Error : Incorrect input value " << endl;
-                return 1;
-            }
         }
 
         string filepath = argv[argv_idx];    // Read file name from command line
@@ -34,7 +29,7 @@ int main(int argc, const char **argv)
         ifstream input(filepath);
         if (!input)
         {
-            std::cout << "Failed to open file: " << filepath << "\n";
+            std::cout << "File " << "\"" << filepath << "\"" << " not found!" << "\n";
             return 1;
         }
         // Open file

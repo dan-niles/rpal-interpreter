@@ -2,4 +2,4 @@ let maxNum(x,y,z) =
     (x ge y) & (x ge z) -> x
     | (y ge x) & (y ge z) -> y |z
 in
-    Print ( maxNum (-2, -7, -1) )
+    Print ( maxNum (-2, -7, 10) )

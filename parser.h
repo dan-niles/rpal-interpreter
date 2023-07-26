@@ -15,11 +15,14 @@ using namespace std;
 
 stack<tree *> st; // Stack for syntax tree
 
+// Array of operators
 char operators[] = {'+', '-', '*', '<', '>', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '#', '%',
                     '^', '_', '[', ']', '{', '}', '"', '`', '?'};
 
+// Array of binary operators
 string binary_operators[] = {"+", "-", "*", "/", "**", "gr", "ge", "<", "<=", ">", ">=", "ls", "le", "eq", "ne", "&", "or", "><"};
 
+// Array of keywords
 string keys[] = {"let", "fn", "in", "where", "aug", "or", "not", "true", "false", "nil", "dummy", "within",
                  "and", "rec", "gr", "ge", "ls", "le", "eq", "ne"};
 
@@ -111,23 +114,19 @@ public:
     // Read the next token
     void read(string val, string type)
     {
-        if (val != nextToken.getVal() || type != nextToken.getType())
+        if (val != nextToken.getVal() || type != nextToken.getType()) // Check if the next token is the expected token
         {
             cout << "Parse error: Expected " << "\"" << val << "\"" << ", but " << "\"" << nextToken.getVal() << "\"" << " was there" << endl;
             exit(0);
         }
 
-        if (type == "IDENTIFIER" || type == "INTEGER" || type == "STRING")
-        {
+        if (type == "IDENTIFIER" || type == "INTEGER" || type == "STRING") // If the token is an identifier, integer or string
             buildTree(val, type, 0);
-        }
 
-        nextToken = getToken(readnew);
+        nextToken = getToken(readnew); // Get the next token
 
-        while (nextToken.getType() == "DELETE")
-        {
+        while (nextToken.getType() == "DELETE") // Ignore all DELETE tokens
             nextToken = getToken(readnew);
-        }
     }
 
     // Build tree for the given string, type and number of children
@@ -350,52 +349,50 @@ public:
     {
         nextToken = getToken(readnew);          // Get the first token
         while (nextToken.getType() == "DELETE") // Ignore all DELETE tokens
-        {
             nextToken = getToken(readnew);
-        }
 
         procedure_E(); // Start parsing from E
 
         while (nextToken.getType() == "DELETE") // Ignore all DELETE tokens
-        {
             nextToken = getToken(readnew);
-        }
 
         if (index >= sizeOfFile - 1) // Check if end of file is reached
         {
             tree *t = st.top(); // Get the root of the tree
 
-            // Print the tree
+            // Print the abstact syntax tree if the flag is set
             if (astFlag == 1)
-            {
                 t->print_tree(0);
-            }
 
             // Make the ST
             makeST(t);
 
-            vector<tree *> delta;
-            tree *setOfDeltaArray[200][200];
-            deltaFunction(t, setOfDeltaArray);
+            // Print the standardized tree if the flag is set
+            if (astFlag == 2)
+                t->print_tree(0);
+
+            // Create
+            tree *controlStructureArray[200][200];
+            createControlStructures(t, controlStructureArray);
 
             int size = 0;
             int inner = 0;
-            while (setOfDeltaArray[size][0] != NULL)
+            while (controlStructureArray[size][0] != NULL)
                 size++;
 
-            vector<vector<tree *> > setOfDelta;
+            vector<vector<tree *> > setOfControlStruct;
             for (int i = 0; i < size; i++)
             {
                 vector<tree *> temp;
                 for (int j = 0; j < 200; j++)
                 {
-                    if (setOfDeltaArray[i][j] != NULL)
-                        temp.push_back(setOfDeltaArray[i][j]);
+                    if (controlStructureArray[i][j] != NULL)
+                        temp.push_back(controlStructureArray[i][j]);
                 }
-                setOfDelta.push_back(temp);
+                setOfControlStruct.push_back(temp);
             }
 
-            cse_machine(setOfDelta);
+            cse_machine(setOfControlStruct);
         }
     }
 
@@ -1479,7 +1476,8 @@ public:
         return temp;
     }
 
-    void deltaFunction(tree *x, tree *(*setOfDelta)[200])
+    // Creates the necessary control structures for CSE machine
+    void createControlStructures(tree *x, tree *(*setOfControlStruct)[200])
     {
         static int index = 1;
         static int j = 0;
@@ -1494,10 +1492,10 @@ public:
 
             int t1 = i;
             int k = 0;
-            setOfDelta[i][j] = createNode("", "");
+            setOfControlStruct[i][j] = createNode("", "");
             i = 0;
 
-            while (setOfDelta[i][0] != NULL)
+            while (setOfControlStruct[i][0] != NULL)
             {
                 i++;
                 k++;
@@ -1509,20 +1507,20 @@ public:
             string str = ss.str();
             tree *temp = createNode(str, "deltaNumber");
 
-            setOfDelta[i][j++] = temp;
+            setOfControlStruct[i][j++] = temp;
 
-            setOfDelta[i][j++] = x->left;
+            setOfControlStruct[i][j++] = x->left;
 
-            setOfDelta[i][j++] = x;
+            setOfControlStruct[i][j++] = x;
 
             int myStoredIndex = i;
             int tempj = j + 3;
 
-            while (setOfDelta[i][0] != NULL)
+            while (setOfControlStruct[i][0] != NULL)
                 i++;
             j = 0;
 
-            deltaFunction(x->left->right, setOfDelta);
+            createControlStructures(x->left->right, setOfControlStruct);
 
             i = myStoredIndex;
             j = tempj;
@@ -1539,40 +1537,40 @@ public:
             string str2 = ss2.str();
             tree *temp1 = createNode(str2, "deltaNumber");
 
-            setOfDelta[i][j++] = temp1;
+            setOfControlStruct[i][j++] = temp1;
 
             int nextToNextDelta = index;
             std::stringstream ss3;
             ss3 << nextToNextDelta;
             string str3 = ss3.str();
             tree *temp2 = createNode(str3, "deltaNumber");
-            setOfDelta[i][j++] = temp2;
+            setOfControlStruct[i][j++] = temp2;
 
             tree *beta = createNode("beta", "beta");
 
-            setOfDelta[i][j++] = beta;
+            setOfControlStruct[i][j++] = beta;
 
-            while (setOfDelta[k][0] != NULL)
+            while (setOfControlStruct[k][0] != NULL)
             {
                 k++;
             }
             int firstIndex = k;
             int lamdaCount = index;
 
-            deltaFunction(x->left, setOfDelta);
+            createControlStructures(x->left, setOfControlStruct);
             int diffLc = index - lamdaCount;
 
-            while (setOfDelta[i][0] != NULL)
+            while (setOfControlStruct[i][0] != NULL)
                 i++;
             j = 0;
 
-            deltaFunction(x->left->right, setOfDelta);
+            createControlStructures(x->left->right, setOfControlStruct);
 
-            while (setOfDelta[i][0] != NULL)
+            while (setOfControlStruct[i][0] != NULL)
                 i++;
             j = 0;
 
-            deltaFunction(x->left->right->right, setOfDelta);
+            createControlStructures(x->left->right->right, setOfControlStruct);
 
             stringstream ss23;
             if (diffLc == 0 || i < lamdaCount)
@@ -1586,17 +1584,17 @@ public:
 
             string str5 = ss23.str();
 
-            setOfDelta[myStoredIndex][tempj]->setVal(str5);
+            setOfControlStruct[myStoredIndex][tempj]->setVal(str5);
             stringstream ss24;
             ss24 << i;
             string str6 = ss24.str();
 
-            setOfDelta[myStoredIndex][tempj + 1]->setVal(str6);
+            setOfControlStruct[myStoredIndex][tempj + 1]->setVal(str6);
 
             i = myStoredIndex;
             j = 0;
 
-            while (setOfDelta[i][j] != NULL)
+            while (setOfControlStruct[i][j] != NULL)
             {
                 j++;
             }
@@ -1616,33 +1614,35 @@ public:
             string str = ss.str();
             tree *countNode = createNode(str, "CHILDCOUNT");
 
-            setOfDelta[i][j++] = countNode; // putting the number of kids of tua
+            setOfControlStruct[i][j++] = countNode; // putting the number of kids of tua
             tree *tauNode = createNode("tau", "tau");
 
-            setOfDelta[i][j++] = tauNode; // putting the tau node and not pushing x
+            setOfControlStruct[i][j++] = tauNode; // putting the tau node and not pushing x
 
-            deltaFunction(x->left, setOfDelta);
+            createControlStructures(x->left, setOfControlStruct);
             x = x->left;
             while (x != NULL)
             {
-                deltaFunction(x->right, setOfDelta);
+                createControlStructures(x->right, setOfControlStruct);
                 x = x->right;
             }
         }
         else
         {
-            setOfDelta[i][j++] = createNode(x->getVal(), x->getType());
-            deltaFunction(x->left, setOfDelta);
+            setOfControlStruct[i][j++] = createNode(x->getVal(), x->getType());
+            createControlStructures(x->left, setOfControlStruct);
             if (x->left != NULL)
-                deltaFunction(x->left->right, setOfDelta);
+                createControlStructures(x->left->right, setOfControlStruct);
         }
     }
 
+    // Helper function for makeStandardTree
     void makeST(tree *t)
     {
         makeStandardTree(t);
     }
 
+    // Makes the tree standard
     tree *makeStandardTree(tree *t)
     {
         if (t == NULL)
