@@ -29,8 +29,8 @@ string keys[] = {"let", "fn", "in", "where", "aug", "or", "not", "true", "false"
 class parser
 {
 public:
-    token nextToken;     // Next token
-    char readnew[10000]; // Read new character
+    token nextToken;     // Next token to be read
+    char readnew[10000]; // Stores program for parsing
     int index;           // Index of character
     int sizeOfFile;      // Size of file
     int astFlag;         // Flag to check if AST or ST is to be printed
@@ -393,6 +393,339 @@ public:
             }
 
             cse_machine(setOfControlStruct);
+        }
+    }
+
+   // Helper function for makeStandardTree
+    void makeST(tree *t)
+    {
+        makeStandardTree(t);
+    }
+
+    // Makes the tree standard
+    tree *makeStandardTree(tree *t)
+    {
+        if (t == NULL)
+            return NULL;
+        makeStandardTree(t->left);
+        makeStandardTree(t->right);
+
+        if (t->getVal() == "let")
+        {
+            if (t->left->getVal() == "=")
+            {
+                t->setVal("gamma");
+                t->setType("KEYWORD");
+                tree *P = createNode(t->left->right);
+                tree *X = createNode(t->left->left);
+                tree *E = createNode(t->left->left->right);
+                t->left = createNode("lambda", "KEYWORD");
+                t->left->right = E; 
+                tree *lambda = t->left;
+                lambda->left = X;
+                lambda->left->right = P;
+            }
+        }
+        else if (t->getVal() == "and" && t->left->getVal() == "=")
+        {
+            tree *equal = t->left;
+            t->setVal("=");
+            t->setType("KEYWORD");
+            t->left = createNode(",", "PUNCTION");
+            tree *comma = t->left;
+            comma->left = createNode(equal->left);
+            t->left->right = createNode("tau", "KEYWORD");
+            tree *tau = t->left->right;
+
+            tau->left = createNode(equal->left->right);
+            tau = tau->left;
+            comma = comma->left;
+            equal = equal->right;
+
+            while (equal != NULL)
+            {
+                comma->right = createNode(equal->left);
+                comma = comma->right;
+                tau->right = createNode(equal->left->right);
+                tau = tau->right;
+
+                equal = equal->right;
+            }
+        }
+        else if (t->getVal() == "where")
+        {
+            t->setVal("gamma");
+            t->setType("KEYWORD");
+            if (t->left->right->getVal() == "=")
+            {
+                tree *P = createNode(t->left);
+                tree *X = createNode(t->left->right->left);
+                tree *E = createNode(t->left->right->left->right);
+                t->left = createNode("lambda", "KEYWORD");
+                t->left->right = E;
+                t->left->left = X;
+                t->left->left->right = P;
+            }
+        }
+        else if (t->getVal() == "within")
+        {
+            if (t->left->getVal() == "=" && t->left->right->getVal() == "=")
+            {
+                tree *X1 = createNode(t->left->left);
+                tree *E1 = createNode(t->left->left->right);
+                tree *X2 = createNode(t->left->right->left);
+                tree *E2 = createNode(t->left->right->left->right);
+                t->setVal("=");
+                t->setType("KEYWORD");
+                t->left = X2;
+                t->left->right = createNode("gamma", "KEYWORD");
+                tree *temp = t->left->right;
+                temp->left = createNode("lambda", "KEYWORD");
+                temp->left->right = E1;
+                temp = temp->left;
+                temp->left = X1;
+                temp->left->right = E2;
+            }
+        }
+        else if (t->getVal() == "rec" && t->left->getVal() == "=")
+        {
+            tree *X = createNode(t->left->left);
+            tree *E = createNode(t->left->left->right);
+
+            t->setVal("=");
+            t->setType("KEYWORD");
+            t->left = X;
+            t->left->right = createNode("gamma", "KEYWORD");
+            t->left->right->left = createNode("YSTAR", "KEYWORD");
+            tree *ystar = t->left->right->left;
+
+            ystar->right = createNode("lambda", "KEYWORD");
+
+            ystar->right->left = createNode(X);
+            ystar->right->left->right = createNode(E);
+        }
+        else if (t->getVal() == "function_form")
+        {
+            tree *P = createNode(t->left);
+            tree *V = t->left->right;
+
+            t->setVal("=");
+            t->setType("KEYWORD");
+            t->left = P;
+
+            tree *temp = t;
+            while (V->right->right != NULL)
+            {
+                temp->left->right = createNode("lambda", "KEYWORD");
+                temp = temp->left->right;
+                temp->left = createNode(V);
+                V = V->right;
+            }
+
+            temp->left->right = createNode("lambda", "KEYWORD");
+            temp = temp->left->right;
+
+            temp->left = createNode(V);
+            temp->left->right = V->right;
+        }
+        else if (t->getVal() == "lambda")
+        {
+            if (t->left != NULL)
+            {
+                tree *V = t->left;
+                tree *temp = t;
+                if (V->right != NULL && V->right->right != NULL)
+                {
+                    while (V->right->right != NULL)
+                    {
+                        temp->left->right = createNode("lambda", "KEYWORD");
+                        temp = temp->left->right;
+                        temp->left = createNode(V);
+                        V = V->right;
+                    }
+
+                    temp->left->right = createNode("lambda", "KEYWORD");
+                    temp = temp->left->right;
+                    temp->left = createNode(V);
+                    temp->left->right = V->right;
+                }
+            }
+        }
+        else if (t->getVal() == "@")
+        {
+            tree *E1 = createNode(t->left);
+            tree *N = createNode(t->left->right);
+            tree *E2 = createNode(t->left->right->right);
+            t->setVal("gamma");
+            t->setType("KEYWORD");
+            t->left = createNode("gamma", "KEYWORD");
+            t->left->right = E2;
+            t->left->left = N;
+            t->left->left->right = E1;
+        }
+
+        return NULL;
+    }
+
+    /* -------------------------------- CSE Machine -------------------------------- */
+
+    // Creates the necessary control structures for CSE machine
+    void createControlStructures(tree *x, tree *(*setOfControlStruct)[200])
+    {
+        static int index = 1;
+        static int j = 0;
+        static int i = 0;
+        static int betaCount = 1;
+        if (x == NULL)
+            return;
+
+        if (x->getVal() == "lambda")
+        {
+            std::stringstream ss;
+
+            int t1 = i;
+            int k = 0;
+            setOfControlStruct[i][j] = createNode("", "");
+            i = 0;
+
+            while (setOfControlStruct[i][0] != NULL)
+            {
+                i++;
+                k++;
+            }
+            i = t1;
+            ss << k;
+            index++;
+
+            string str = ss.str();
+            tree *temp = createNode(str, "deltaNumber");
+
+            setOfControlStruct[i][j++] = temp;
+
+            setOfControlStruct[i][j++] = x->left;
+
+            setOfControlStruct[i][j++] = x;
+
+            int myStoredIndex = i;
+            int tempj = j + 3;
+
+            while (setOfControlStruct[i][0] != NULL)
+                i++;
+            j = 0;
+
+            createControlStructures(x->left->right, setOfControlStruct);
+
+            i = myStoredIndex;
+            j = tempj;
+        }
+        else if (x->getVal() == "->")
+        {
+            int myStoredIndex = i;
+            int tempj = j;
+            int nextDelta = index;
+            int k = i;
+
+            std::stringstream ss2;
+            ss2 << nextDelta;
+            string str2 = ss2.str();
+            tree *temp1 = createNode(str2, "deltaNumber");
+
+            setOfControlStruct[i][j++] = temp1;
+
+            int nextToNextDelta = index;
+            std::stringstream ss3;
+            ss3 << nextToNextDelta;
+            string str3 = ss3.str();
+            tree *temp2 = createNode(str3, "deltaNumber");
+            setOfControlStruct[i][j++] = temp2;
+
+            tree *beta = createNode("beta", "beta");
+
+            setOfControlStruct[i][j++] = beta;
+
+            while (setOfControlStruct[k][0] != NULL)
+            {
+                k++;
+            }
+            int firstIndex = k;
+            int lamdaCount = index;
+
+            createControlStructures(x->left, setOfControlStruct);
+            int diffLc = index - lamdaCount;
+
+            while (setOfControlStruct[i][0] != NULL)
+                i++;
+            j = 0;
+
+            createControlStructures(x->left->right, setOfControlStruct);
+
+            while (setOfControlStruct[i][0] != NULL)
+                i++;
+            j = 0;
+
+            createControlStructures(x->left->right->right, setOfControlStruct);
+
+            stringstream ss23;
+            if (diffLc == 0 || i < lamdaCount)
+            {
+                ss23 << firstIndex;
+            }
+            else
+            {
+                ss23 << i - 1;
+            }
+
+            string str5 = ss23.str();
+
+            setOfControlStruct[myStoredIndex][tempj]->setVal(str5);
+            stringstream ss24;
+            ss24 << i;
+            string str6 = ss24.str();
+
+            setOfControlStruct[myStoredIndex][tempj + 1]->setVal(str6);
+
+            i = myStoredIndex;
+            j = 0;
+
+            while (setOfControlStruct[i][j] != NULL)
+            {
+                j++;
+            }
+            betaCount += 2;
+        }
+        else if (x->getVal() == "tau")
+        {
+            tree *tauLeft = x->left;
+            int numOfChildren = 0;
+            while (tauLeft != NULL)
+            {
+                numOfChildren++;
+                tauLeft = tauLeft->right;
+            }
+            std::stringstream ss;
+            ss << numOfChildren;
+            string str = ss.str();
+            tree *countNode = createNode(str, "CHILDCOUNT");
+
+            setOfControlStruct[i][j++] = countNode; // putting the number of kids of tua
+            tree *tauNode = createNode("tau", "tau");
+
+            setOfControlStruct[i][j++] = tauNode; // putting the tau node and not pushing x
+
+            createControlStructures(x->left, setOfControlStruct);
+            x = x->left;
+            while (x != NULL)
+            {
+                createControlStructures(x->right, setOfControlStruct);
+                x = x->right;
+            }
+        }
+        else
+        {
+            setOfControlStruct[i][j++] = createNode(x->getVal(), x->getType());
+            createControlStructures(x->left, setOfControlStruct);
+            if (x->left != NULL)
+                createControlStructures(x->left->right, setOfControlStruct);
         }
     }
 
@@ -1438,6 +1771,8 @@ public:
         cout << endl;
     }
 
+    /* -------------------------------- Helper Functions -------------------------------- */
+
     // Arranges nodes in tauNode into a stack
     void arrangeTuple(tree *tauNode, stack<tree *> &res)
     {
@@ -1477,338 +1812,7 @@ public:
         }
         return temp;
     }
-
-    // Creates the necessary control structures for CSE machine
-    void createControlStructures(tree *x, tree *(*setOfControlStruct)[200])
-    {
-        static int index = 1;
-        static int j = 0;
-        static int i = 0;
-        static int betaCount = 1;
-        if (x == NULL)
-            return;
-
-        if (x->getVal() == "lambda")
-        {
-            std::stringstream ss;
-
-            int t1 = i;
-            int k = 0;
-            setOfControlStruct[i][j] = createNode("", "");
-            i = 0;
-
-            while (setOfControlStruct[i][0] != NULL)
-            {
-                i++;
-                k++;
-            }
-            i = t1;
-            ss << k;
-            index++;
-
-            string str = ss.str();
-            tree *temp = createNode(str, "deltaNumber");
-
-            setOfControlStruct[i][j++] = temp;
-
-            setOfControlStruct[i][j++] = x->left;
-
-            setOfControlStruct[i][j++] = x;
-
-            int myStoredIndex = i;
-            int tempj = j + 3;
-
-            while (setOfControlStruct[i][0] != NULL)
-                i++;
-            j = 0;
-
-            createControlStructures(x->left->right, setOfControlStruct);
-
-            i = myStoredIndex;
-            j = tempj;
-        }
-        else if (x->getVal() == "->")
-        {
-            int myStoredIndex = i;
-            int tempj = j;
-            int nextDelta = index;
-            int k = i;
-
-            std::stringstream ss2;
-            ss2 << nextDelta;
-            string str2 = ss2.str();
-            tree *temp1 = createNode(str2, "deltaNumber");
-
-            setOfControlStruct[i][j++] = temp1;
-
-            int nextToNextDelta = index;
-            std::stringstream ss3;
-            ss3 << nextToNextDelta;
-            string str3 = ss3.str();
-            tree *temp2 = createNode(str3, "deltaNumber");
-            setOfControlStruct[i][j++] = temp2;
-
-            tree *beta = createNode("beta", "beta");
-
-            setOfControlStruct[i][j++] = beta;
-
-            while (setOfControlStruct[k][0] != NULL)
-            {
-                k++;
-            }
-            int firstIndex = k;
-            int lamdaCount = index;
-
-            createControlStructures(x->left, setOfControlStruct);
-            int diffLc = index - lamdaCount;
-
-            while (setOfControlStruct[i][0] != NULL)
-                i++;
-            j = 0;
-
-            createControlStructures(x->left->right, setOfControlStruct);
-
-            while (setOfControlStruct[i][0] != NULL)
-                i++;
-            j = 0;
-
-            createControlStructures(x->left->right->right, setOfControlStruct);
-
-            stringstream ss23;
-            if (diffLc == 0 || i < lamdaCount)
-            {
-                ss23 << firstIndex;
-            }
-            else
-            {
-                ss23 << i - 1;
-            }
-
-            string str5 = ss23.str();
-
-            setOfControlStruct[myStoredIndex][tempj]->setVal(str5);
-            stringstream ss24;
-            ss24 << i;
-            string str6 = ss24.str();
-
-            setOfControlStruct[myStoredIndex][tempj + 1]->setVal(str6);
-
-            i = myStoredIndex;
-            j = 0;
-
-            while (setOfControlStruct[i][j] != NULL)
-            {
-                j++;
-            }
-            betaCount += 2;
-        }
-        else if (x->getVal() == "tau")
-        {
-            tree *tauLeft = x->left;
-            int numOfChildren = 0;
-            while (tauLeft != NULL)
-            {
-                numOfChildren++;
-                tauLeft = tauLeft->right;
-            }
-            std::stringstream ss;
-            ss << numOfChildren;
-            string str = ss.str();
-            tree *countNode = createNode(str, "CHILDCOUNT");
-
-            setOfControlStruct[i][j++] = countNode; // putting the number of kids of tua
-            tree *tauNode = createNode("tau", "tau");
-
-            setOfControlStruct[i][j++] = tauNode; // putting the tau node and not pushing x
-
-            createControlStructures(x->left, setOfControlStruct);
-            x = x->left;
-            while (x != NULL)
-            {
-                createControlStructures(x->right, setOfControlStruct);
-                x = x->right;
-            }
-        }
-        else
-        {
-            setOfControlStruct[i][j++] = createNode(x->getVal(), x->getType());
-            createControlStructures(x->left, setOfControlStruct);
-            if (x->left != NULL)
-                createControlStructures(x->left->right, setOfControlStruct);
-        }
-    }
-
-    // Helper function for makeStandardTree
-    void makeST(tree *t)
-    {
-        makeStandardTree(t);
-    }
-
-    // Makes the tree standard
-    tree *makeStandardTree(tree *t)
-    {
-        if (t == NULL)
-            return NULL;
-        makeStandardTree(t->left);
-        makeStandardTree(t->right);
-
-        if (t->getVal() == "let")
-        {
-            if (t->left->getVal() == "=")
-            {
-                t->setVal("gamma");
-                t->setType("KEYWORD");
-                tree *P = createNode(t->left->right);
-                tree *X = createNode(t->left->left);
-                tree *E = createNode(t->left->left->right);
-                t->left = createNode("lambda", "KEYWORD");
-                t->left->right = E; 
-                tree *lambda = t->left;
-                lambda->left = X;
-                lambda->left->right = P;
-            }
-        }
-        else if (t->getVal() == "and" && t->left->getVal() == "=")
-        {
-            tree *equal = t->left;
-            t->setVal("=");
-            t->setType("KEYWORD");
-            t->left = createNode(",", "PUNCTION");
-            tree *comma = t->left;
-            comma->left = createNode(equal->left);
-            t->left->right = createNode("tau", "KEYWORD");
-            tree *tau = t->left->right;
-
-            tau->left = createNode(equal->left->right);
-            tau = tau->left;
-            comma = comma->left;
-            equal = equal->right;
-
-            while (equal != NULL)
-            {
-                comma->right = createNode(equal->left);
-                comma = comma->right;
-                tau->right = createNode(equal->left->right);
-                tau = tau->right;
-
-                equal = equal->right;
-            }
-        }
-        else if (t->getVal() == "where")
-        {
-            t->setVal("gamma");
-            t->setType("KEYWORD");
-            if (t->left->right->getVal() == "=")
-            {
-                tree *P = createNode(t->left);
-                tree *X = createNode(t->left->right->left);
-                tree *E = createNode(t->left->right->left->right);
-                t->left = createNode("lambda", "KEYWORD");
-                t->left->right = E;
-                t->left->left = X;
-                t->left->left->right = P;
-            }
-        }
-        else if (t->getVal() == "within")
-        {
-            if (t->left->getVal() == "=" && t->left->right->getVal() == "=")
-            {
-                tree *X1 = createNode(t->left->left);
-                tree *E1 = createNode(t->left->left->right);
-                tree *X2 = createNode(t->left->right->left);
-                tree *E2 = createNode(t->left->right->left->right);
-                t->setVal("=");
-                t->setType("KEYWORD");
-                t->left = X2;
-                t->left->right = createNode("gamma", "KEYWORD");
-                tree *temp = t->left->right;
-                temp->left = createNode("lambda", "KEYWORD");
-                temp->left->right = E1;
-                temp = temp->left;
-                temp->left = X1;
-                temp->left->right = E2;
-            }
-        }
-        else if (t->getVal() == "rec" && t->left->getVal() == "=")
-        {
-            tree *X = createNode(t->left->left);
-            tree *E = createNode(t->left->left->right);
-
-            t->setVal("=");
-            t->setType("KEYWORD");
-            t->left = X;
-            t->left->right = createNode("gamma", "KEYWORD");
-            t->left->right->left = createNode("YSTAR", "KEYWORD");
-            tree *ystar = t->left->right->left;
-
-            ystar->right = createNode("lambda", "KEYWORD");
-
-            ystar->right->left = createNode(X);
-            ystar->right->left->right = createNode(E);
-        }
-        else if (t->getVal() == "function_form")
-        {
-            tree *P = createNode(t->left);
-            tree *V = t->left->right;
-
-            t->setVal("=");
-            t->setType("KEYWORD");
-            t->left = P;
-
-            tree *temp = t;
-            while (V->right->right != NULL)
-            {
-                temp->left->right = createNode("lambda", "KEYWORD");
-                temp = temp->left->right;
-                temp->left = createNode(V);
-                V = V->right;
-            }
-
-            temp->left->right = createNode("lambda", "KEYWORD");
-            temp = temp->left->right;
-
-            temp->left = createNode(V);
-            temp->left->right = V->right;
-        }
-        else if (t->getVal() == "lambda")
-        {
-            if (t->left != NULL)
-            {
-                tree *V = t->left;
-                tree *temp = t;
-                if (V->right != NULL && V->right->right != NULL)
-                {
-                    while (V->right->right != NULL)
-                    {
-                        temp->left->right = createNode("lambda", "KEYWORD");
-                        temp = temp->left->right;
-                        temp->left = createNode(V);
-                        V = V->right;
-                    }
-
-                    temp->left->right = createNode("lambda", "KEYWORD");
-                    temp = temp->left->right;
-                    temp->left = createNode(V);
-                    temp->left->right = V->right;
-                }
-            }
-        }
-        else if (t->getVal() == "@")
-        {
-            tree *E1 = createNode(t->left);
-            tree *N = createNode(t->left->right);
-            tree *E2 = createNode(t->left->right->right);
-            t->setVal("gamma");
-            t->setType("KEYWORD");
-            t->left = createNode("gamma", "KEYWORD");
-            t->left->right = E2;
-            t->left->left = N;
-            t->left->left->right = E1;
-        }
-
-        return NULL;
-    }
-
+ 
     /* -------------------------------- Grammar Rules -------------------------------- */
 
     // E -> ’let’ D ’in’ E | ’fn’ Vb+ ’.’ E | Ew
