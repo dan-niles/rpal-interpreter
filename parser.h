@@ -481,8 +481,8 @@ public:
 
                     newEnv->name = "env" + str;
 
-                    if (currEnvIndex > 2000) // Avoid stack overflow
-                        return;
+                    // if (currEnvIndex > 10000) // Avoid stack overflow
+                    //     return;
 
                     stack<environment *> tempEnv = stackOfEnvironment;
 
